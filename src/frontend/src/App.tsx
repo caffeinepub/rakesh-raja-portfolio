@@ -246,6 +246,16 @@ const projects: Project[] = [
       "https://mir-s3-cdn-cf.behance.net/projects/404/622b71243333301.6994cbb8ab7a0.jpg",
     link: "https://www.behance.net/gallery/243333301/Poster-design",
   },
+  {
+    title: "E-Commerce VIDEO",
+    description:
+      "Dynamic e-commerce video production showcasing product storytelling, motion design, and visual marketing skills.",
+    tags: ["Video", "Motion Design", "E-Commerce"],
+    accentColor: "linear-gradient(90deg, #F97316, #EA580C)",
+    thumbnail:
+      "https://mir-s3-cdn-cf.behance.net/projects/404/cc71bc203160409.png",
+    link: "https://www.behance.net/gallery/203160409/E-Commerce-VIDEO",
+  },
 ];
 
 const educations: Education[] = [
