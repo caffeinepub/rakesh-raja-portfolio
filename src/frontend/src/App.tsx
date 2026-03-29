@@ -1,4 +1,5 @@
 import {
+  Download,
   ExternalLink,
   Instagram,
   Linkedin,
@@ -44,41 +45,6 @@ interface ContactItem {
 }
 
 import type React from "react";
-
-// Extended backend interface with visitor tracking methods
-interface FullBackendInterface {
-  getReview(id: bigint): Promise<{
-    id: bigint;
-    name: string;
-    role: string;
-    reviewText: string;
-    company: string;
-    timestamp: bigint;
-    rating: bigint;
-  }>;
-  getReviews(): Promise<
-    Array<{
-      id: bigint;
-      name: string;
-      role: string;
-      reviewText: string;
-      company: string;
-      timestamp: bigint;
-      rating: bigint;
-    }>
-  >;
-  submitReview(
-    name: string,
-    role: string,
-    company: string,
-    reviewText: string,
-    rating: bigint,
-  ): Promise<bigint>;
-  recordVisit(dateStr: string): Promise<void>;
-  getTotalVisits(): Promise<bigint>;
-  getDailyVisits(): Promise<Array<[string, bigint]>>;
-  getReviewCount(): Promise<bigint>;
-}
 
 // ===== DATA =====
 const experiences: Experience[] = [
@@ -152,14 +118,21 @@ const designSkills = [
   "Visual Design & Branding",
   "Social Media Creatives",
   "Motion Graphics",
+  "Logo & Identity Design",
+  "Print & Marketing Materials",
+  "Typography & Layout",
 ];
 
 const toolSkills = [
   "Adobe Photoshop",
   "Adobe Illustrator",
   "Adobe After Effects",
+  "Adobe Premiere Pro",
   "Figma",
+  "Adobe XD",
+  "Canva",
   "PowerPoint",
+  "Lightroom",
 ];
 
 const projects: Project[] = [
@@ -294,6 +267,7 @@ const navItems = [
   { label: "Experience", href: "#experience" },
   { label: "Skills", href: "#skills" },
   { label: "Projects", href: "#projects" },
+  { label: "Videos", href: "#videos" },
   { label: "Reviews", href: "#reviews" },
   { label: "Contact", href: "#contact" },
 ];
@@ -479,36 +453,6 @@ function Header() {
 function HeroProfilePhoto() {
   return (
     <>
-      <style>{`
-        @keyframes spin-slow {
-          from { transform: rotate(0deg); }
-          to { transform: rotate(360deg); }
-        }
-        @keyframes spin-slow-reverse {
-          from { transform: rotate(0deg); }
-          to { transform: rotate(-360deg); }
-        }
-        @keyframes orbit {
-          from { transform: rotate(0deg) translateX(52%) rotate(0deg); }
-          to { transform: rotate(360deg) translateX(52%) rotate(-360deg); }
-        }
-        @keyframes orbit-reverse {
-          from { transform: rotate(0deg) translateX(58%) rotate(0deg); }
-          to { transform: rotate(-360deg) translateX(58%) rotate(360deg); }
-        }
-        @keyframes float {
-          0% { transform: translateY(0px); }
-          100% { transform: translateY(-10px); }
-        }
-        @keyframes float2 {
-          0% { transform: translateY(0px); }
-          100% { transform: translateY(10px); }
-        }
-        @keyframes pulse-ring {
-          0%, 100% { opacity: 0.4; transform: scale(1); }
-          50% { opacity: 0.8; transform: scale(1.03); }
-        }
-      `}</style>
       <div
         className="relative flex items-center justify-center mb-8 lg:mb-0"
         style={{
@@ -779,7 +723,6 @@ function HeroProfilePhoto() {
             animation: "float 3s ease-in-out infinite alternate",
             pointerEvents: "none",
             zIndex: 2,
-            backdropFilter: "blur(4px)",
           }}
         >
           UI Design
@@ -803,7 +746,6 @@ function HeroProfilePhoto() {
             animationDelay: "0.8s",
             pointerEvents: "none",
             zIndex: 2,
-            backdropFilter: "blur(4px)",
           }}
         >
           Branding
@@ -828,7 +770,6 @@ function HeroProfilePhoto() {
             animationDelay: "1.5s",
             pointerEvents: "none",
             zIndex: 2,
-            backdropFilter: "blur(4px)",
           }}
         >
           5+ Years
@@ -938,6 +879,33 @@ function HeroSection() {
                 data-ocid="hero.secondary_button"
               >
                 Get In Touch
+              </a>
+              <a
+                href="/assets/uploads/rakesh_resume_updated_3-019d3ac0-14ec-76b8-a0de-6d54647ee243-1.pdf"
+                download="Rakesh_Raja_Resume.pdf"
+                target="_blank"
+                rel="noopener noreferrer"
+                className="inline-flex items-center gap-2 px-7 py-3 rounded-full font-body font-semibold text-sm uppercase tracking-wider transition-all duration-200 hover:opacity-90 hover:scale-105"
+                style={{
+                  background: "transparent",
+                  border: "1.5px solid var(--color-blue)",
+                  color: "var(--color-blue)",
+                }}
+                data-ocid="hero.download_button"
+              >
+                <Download size={16} />
+                Download Resume
+              </a>
+              <a
+                href="#contact"
+                className="inline-flex items-center gap-2 px-7 py-3 rounded-full font-body font-semibold text-sm uppercase tracking-wider transition-all duration-200 hover:opacity-90 hover:scale-105"
+                style={{
+                  background: "var(--color-gold)",
+                  color: "#0a0f1a",
+                }}
+                data-ocid="hero.hireme_button"
+              >
+                Hire Me
               </a>
             </div>
           </div>
@@ -1134,7 +1102,7 @@ function SkillsSection() {
           Skills & Tools
         </h2>
 
-        <div className="grid md:grid-cols-2 gap-10">
+        <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-10">
           {/* Design skills */}
           <div className="reveal">
             <h3
@@ -1305,6 +1273,169 @@ function ProjectsSection() {
             </a>
             .
           </p>
+        </div>
+      </div>
+    </section>
+  );
+}
+
+// ===== VIDEO & MOTION =====
+function VideoMotionSection() {
+  const videos = [
+    {
+      title: "E-Commerce VIDEO",
+      description:
+        "Dynamic e-commerce video production — product showcasing with motion graphics and cinematic editing.",
+      tags: ["Video Editing", "Motion Graphics", "After Effects"],
+      thumbnail: "https://mir-s3-cdn-cf.behance.net/projects/404/203160409.png",
+      link: "https://www.behance.net/gallery/203160409/E-Commerce-VIDEO",
+      accentColor: "linear-gradient(90deg, #F59E0B, #D97706)",
+    },
+    {
+      title: "Work Videos",
+      description:
+        "A collection of professional video work — brand films, promotional videos, and motion content.",
+      tags: ["Video Editing", "Premiere Pro", "Color Grading"],
+      thumbnail: "https://mir-s3-cdn-cf.behance.net/projects/404/203155749.png",
+      link: "https://www.behance.net/gallery/203155749/WORK-VIDEOS",
+      accentColor: "linear-gradient(90deg, #1E7BFF, #0D5ECC)",
+    },
+  ];
+  return (
+    <section id="videos" className="py-24" data-ocid="videos.section">
+      <div style={{ maxWidth: "1200px" }} className="mx-auto px-6">
+        <div className="reveal mb-3">
+          <span
+            className="font-body text-xs font-semibold tracking-[0.3em] uppercase"
+            style={{ color: "var(--color-blue)" }}
+          >
+            Motion & Film
+          </span>
+        </div>
+        <h2
+          className="reveal reveal-delay-1 font-display text-3xl lg:text-4xl font-bold uppercase tracking-widest mb-14"
+          style={{ color: "var(--color-text)" }}
+        >
+          Video & Motion
+        </h2>
+        <div className="grid md:grid-cols-2 gap-8">
+          {videos.map((video, i) => (
+            <a
+              key={video.title}
+              href={video.link}
+              target="_blank"
+              rel="noopener noreferrer"
+              className={`reveal reveal-delay-${i + 1} group block rounded-xl overflow-hidden`}
+              style={{
+                background: "var(--color-card)",
+                border: "1px solid var(--color-border)",
+                transition: "transform 0.3s ease, box-shadow 0.3s ease",
+                textDecoration: "none",
+              }}
+              data-ocid={`videos.item.${i + 1}`}
+            >
+              <div style={{ height: "4px", background: video.accentColor }} />
+              <div
+                style={{
+                  position: "relative",
+                  aspectRatio: "16/9",
+                  overflow: "hidden",
+                  background: "#0a1628",
+                }}
+              >
+                <img
+                  src={video.thumbnail}
+                  alt={video.title}
+                  style={{
+                    width: "100%",
+                    height: "100%",
+                    objectFit: "cover",
+                    transition: "transform 0.4s ease",
+                    opacity: 0.85,
+                  }}
+                  className="group-hover:scale-105"
+                  onError={(e) => {
+                    (e.target as HTMLImageElement).style.display = "none";
+                  }}
+                />
+                {/* Play button overlay */}
+                <div
+                  style={{
+                    position: "absolute",
+                    inset: 0,
+                    display: "flex",
+                    alignItems: "center",
+                    justifyContent: "center",
+                    background: "rgba(0,0,0,0.3)",
+                    transition: "background 0.3s ease",
+                  }}
+                  className="group-hover:bg-black/20"
+                >
+                  <div
+                    style={{
+                      width: 64,
+                      height: 64,
+                      borderRadius: "50%",
+                      background: "rgba(245,158,11,0.9)",
+                      display: "flex",
+                      alignItems: "center",
+                      justifyContent: "center",
+                      boxShadow: "0 0 30px rgba(245,158,11,0.5)",
+                      transition: "transform 0.3s ease",
+                    }}
+                    className="group-hover:scale-110"
+                  >
+                    <svg
+                      width="24"
+                      height="24"
+                      viewBox="0 0 24 24"
+                      fill="white"
+                      role="img"
+                      aria-label="Play video"
+                    >
+                      <title>Play video</title>
+                      <polygon points="5,3 19,12 5,21" />
+                    </svg>
+                  </div>
+                </div>
+              </div>
+              <div className="p-6">
+                <h3
+                  className="font-display text-lg font-bold mb-2"
+                  style={{ color: "var(--color-text)" }}
+                >
+                  {video.title}
+                </h3>
+                <p
+                  className="font-body text-sm leading-relaxed mb-4"
+                  style={{ color: "var(--color-text-muted)" }}
+                >
+                  {video.description}
+                </p>
+                <div className="flex flex-wrap gap-2 mb-4">
+                  {video.tags.map((tag) => (
+                    <span
+                      key={tag}
+                      className="font-body text-xs px-2.5 py-1 rounded-full"
+                      style={{
+                        background: "rgba(38,48,58,0.8)",
+                        border: "1px solid var(--color-border)",
+                        color: "var(--color-text-muted)",
+                      }}
+                    >
+                      {tag}
+                    </span>
+                  ))}
+                </div>
+                <span
+                  className="font-body text-sm font-semibold"
+                  style={{ color: "var(--color-gold)" }}
+                >
+                  Watch on Behance →
+                </span>
+              </div>
+            </a>
+          ))}
         </div>
       </div>
     </section>
@@ -1975,223 +2106,9 @@ function Footer() {
   );
 }
 
-// ===== ADMIN DASHBOARD =====
-function AdminDashboard() {
-  const { actor: _actor } = useActor();
-  const actor = _actor as unknown as FullBackendInterface | null;
-  const [totalVisitors, setTotalVisitors] = useState<bigint | null>(null);
-  const [totalReviews, setTotalReviews] = useState<bigint | null>(null);
-  const [dailyVisits, setDailyVisits] = useState<Array<[string, bigint]>>([]);
-  const [loading, setLoading] = useState(true);
-
-  useEffect(() => {
-    if (!actor) return;
-    Promise.all([
-      actor.getTotalVisits(),
-      actor.getReviewCount(),
-      actor.getDailyVisits(),
-    ])
-      .then(([visits, reviews, daily]) => {
-        setTotalVisitors(visits);
-        setTotalReviews(reviews);
-        const sorted = [...daily]
-          .sort((a, b) => b[0].localeCompare(a[0]))
-          .slice(0, 30);
-        setDailyVisits(sorted);
-        setLoading(false);
-      })
-      .catch(() => setLoading(false));
-  }, [actor]);
-
-  const maxCount =
-    dailyVisits.length > 0
-      ? Math.max(...dailyVisits.map(([, c]) => Number(c)), 1)
-      : 1;
-
-  return (
-    <div
-      style={{
-        background: "var(--color-bg)",
-        minHeight: "100vh",
-        padding: "2rem",
-      }}
-      data-ocid="admin.panel"
-    >
-      <div style={{ maxWidth: "900px", margin: "0 auto" }}>
-        {/* Header */}
-        <div className="flex items-center justify-between mb-8 flex-wrap gap-4">
-          <h1
-            className="font-display text-3xl font-bold"
-            style={{ color: "var(--color-text)" }}
-          >
-            Portfolio Dashboard
-          </h1>
-          <a
-            href="./"
-            style={{
-              color: "var(--color-blue)",
-              textDecoration: "none",
-              fontSize: "0.9rem",
-              display: "flex",
-              alignItems: "center",
-              gap: "0.4rem",
-            }}
-            className="hover:underline"
-            data-ocid="admin.link"
-          >
-            ← Back to Portfolio
-          </a>
-        </div>
-
-        {loading ? (
-          <div
-            className="text-center py-20"
-            style={{ color: "var(--color-text-muted)" }}
-            data-ocid="admin.loading_state"
-          >
-            Loading stats…
-          </div>
-        ) : (
-          <>
-            {/* Stats Cards */}
-            <div className="grid grid-cols-1 sm:grid-cols-2 gap-6 mb-10">
-              <div
-                className="rounded-xl p-6"
-                style={{
-                  background: "var(--color-card)",
-                  border: "1px solid var(--color-border)",
-                }}
-                data-ocid="admin.visitors.card"
-              >
-                <p
-                  className="font-body text-sm uppercase tracking-widest mb-2"
-                  style={{ color: "var(--color-text-muted)" }}
-                >
-                  Total Visitors
-                </p>
-                <p
-                  className="font-display text-5xl font-bold"
-                  style={{ color: "var(--color-blue)" }}
-                >
-                  {totalVisitors !== null ? totalVisitors.toString() : "—"}
-                </p>
-              </div>
-              <div
-                className="rounded-xl p-6"
-                style={{
-                  background: "var(--color-card)",
-                  border: "1px solid var(--color-border)",
-                }}
-                data-ocid="admin.reviews.card"
-              >
-                <p
-                  className="font-body text-sm uppercase tracking-widest mb-2"
-                  style={{ color: "var(--color-text-muted)" }}
-                >
-                  Total Reviews
-                </p>
-                <p
-                  className="font-display text-5xl font-bold"
-                  style={{ color: "var(--color-gold)" }}
-                >
-                  {totalReviews !== null ? totalReviews.toString() : "—"}
-                </p>
-              </div>
-            </div>
-
-            {/* Daily Visits */}
-            <div
-              className="rounded-xl p-6"
-              style={{
-                background: "var(--color-card)",
-                border: "1px solid var(--color-border)",
-              }}
-              data-ocid="admin.daily_visits.panel"
-            >
-              <h2
-                className="font-display text-xl font-semibold mb-6"
-                style={{ color: "var(--color-text)" }}
-              >
-                Daily Visits (Last 30 Days)
-              </h2>
-              {dailyVisits.length === 0 ? (
-                <p
-                  style={{ color: "var(--color-text-muted)" }}
-                  className="font-body text-sm"
-                  data-ocid="admin.daily_visits.empty_state"
-                >
-                  No visit data yet.
-                </p>
-              ) : (
-                <div className="space-y-3">
-                  {dailyVisits.map(([date, count], i) => {
-                    const pct = Math.max((Number(count) / maxCount) * 100, 2);
-                    return (
-                      <div
-                        key={date}
-                        className="flex items-center gap-4"
-                        data-ocid={`admin.daily_visits.item.${i + 1}`}
-                      >
-                        <span
-                          className="font-body text-xs w-24 shrink-0"
-                          style={{ color: "var(--color-text-secondary)" }}
-                        >
-                          {date}
-                        </span>
-                        <div
-                          className="flex-1 rounded-full overflow-hidden"
-                          style={{
-                            background: "var(--color-border)",
-                            height: "10px",
-                          }}
-                        >
-                          <div
-                            style={{
-                              width: `${pct}%`,
-                              height: "100%",
-                              background: "var(--color-blue)",
-                              borderRadius: "9999px",
-                              transition: "width 0.6s ease",
-                            }}
-                          />
-                        </div>
-                        <span
-                          className="font-body text-xs w-6 text-right shrink-0 font-bold"
-                          style={{ color: "var(--color-blue)" }}
-                        >
-                          {count.toString()}
-                        </span>
-                      </div>
-                    );
-                  })}
-                </div>
-              )}
-            </div>
-          </>
-        )}
-      </div>
-    </div>
-  );
-}
-
 // ===== APP =====
 export default function App() {
   useScrollReveal();
-  const { actor: _appActor } = useActor();
-  const actor = _appActor as unknown as FullBackendInterface | null;
-  const isAdmin =
-    typeof window !== "undefined" && window.location.search.includes("admin");
-
-  useEffect(() => {
-    if (!actor) return;
-    const dateStr = new Date().toISOString().slice(0, 10);
-    actor.recordVisit(dateStr).catch(() => {});
-  }, [actor]);
-
-  if (isAdmin) {
-    return <AdminDashboard />;
-  }
-
   return (
     <div style={{ background: "var(--color-bg)", minHeight: "100vh" }}>
       <Header />
@@ -2201,6 +2118,7 @@ export default function App() {
         <ExperienceSection />
         <SkillsSection />
         <ProjectsSection />
+        <VideoMotionSection />
         <EducationSection />
         <ReviewsSection />
         <ContactSection />

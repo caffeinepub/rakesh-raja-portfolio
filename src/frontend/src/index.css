@@ -98,8 +98,8 @@
 
 /* ===== Scroll reveal animations ===== */
 .reveal {
-  opacity: 0;
-  transform: translateY(32px);
+  opacity: 1;
+  transform: none;
   transition: opacity 0.65s ease, transform 0.65s ease;
 }
 
@@ -255,7 +255,68 @@
 /* ===== Header ===== */
 .header-glass {
   background: rgba(11, 15, 20, 0.85);
-  backdrop-filter: blur(16px);
-  -webkit-backdrop-filter: blur(16px);
+  backdrop-filter: blur(8px);
+  -webkit-backdrop-filter: blur(8px);
   border-bottom: 1px solid rgba(38, 48, 58, 0.8);
+}
+
+/* ===== Profile photo animation keyframes ===== */
+@keyframes spin-slow {
+  from {
+    transform: rotate(0deg);
+  }
+  to {
+    transform: rotate(360deg);
+  }
+}
+@keyframes spin-slow-reverse {
+  from {
+    transform: rotate(0deg);
+  }
+  to {
+    transform: rotate(-360deg);
+  }
+}
+@keyframes orbit {
+  from {
+    transform: rotate(0deg) translateX(52%) rotate(0deg);
+  }
+  to {
+    transform: rotate(360deg) translateX(52%) rotate(-360deg);
+  }
+}
+@keyframes orbit-reverse {
+  from {
+    transform: rotate(0deg) translateX(58%) rotate(0deg);
+  }
+  to {
+    transform: rotate(-360deg) translateX(58%) rotate(360deg);
+  }
+}
+@keyframes float {
+  0% {
+    transform: translateY(0px);
+  }
+  100% {
+    transform: translateY(-10px);
+  }
+}
+@keyframes float2 {
+  0% {
+    transform: translateY(0px);
+  }
+  100% {
+    transform: translateY(10px);
+  }
+}
+@keyframes pulse-ring {
+  0%,
+  100% {
+    opacity: 0.4;
+    transform: scale(1);
+  }
+  50% {
+    opacity: 0.8;
+    transform: scale(1.03);
+  }
 }

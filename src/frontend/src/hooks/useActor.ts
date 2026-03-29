@@ -41,11 +41,7 @@ export function useActor() {
           return !query.queryKey.includes(ACTOR_QUERY_KEY);
         },
       });
-      queryClient.refetchQueries({
-        predicate: (query) => {
-          return !query.queryKey.includes(ACTOR_QUERY_KEY);
-        },
-      });
+      // refetchQueries removed — it caused aggressive re-renders
     }
   }, [actorQuery.data, queryClient]);
 
