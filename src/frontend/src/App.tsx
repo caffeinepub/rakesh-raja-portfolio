@@ -311,25 +311,36 @@ function useScrollReveal() {
           }
         }
       },
-      { threshold: 0.08, rootMargin: "0px 0px -40px 0px" },
+      { threshold: 0.05, rootMargin: "0px 0px 0px 0px" },
     );
 
     function observeAll() {
       const elements = document.querySelectorAll(".reveal");
       for (const el of elements) {
-        if (!observed.has(el)) {
-          const rect = el.getBoundingClientRect();
-          if (rect.top < window.innerHeight && rect.bottom > 0) {
-            el.classList.add("visible");
-          } else {
-            io.observe(el);
-            observed.add(el);
-          }
+        const rect = el.getBoundingClientRect();
+        if (rect.top < window.innerHeight && rect.bottom > 0) {
+          el.classList.add("visible");
+          observed.add(el);
+        } else if (!observed.has(el)) {
+          io.observe(el);
+          observed.add(el);
         }
       }
     }
 
+    // Run immediately and at intervals to ensure all visible elements are revealed
     observeAll();
+    const t1 = setTimeout(observeAll, 100);
+    const t2 = setTimeout(observeAll, 400);
+    // Safety net: after 800ms force-reveal everything in viewport
+    const t3 = setTimeout(() => {
+      for (const el of document.querySelectorAll(".reveal:not(.visible)")) {
+        const rect = el.getBoundingClientRect();
+        if (rect.top < window.innerHeight + 100) {
+          el.classList.add("visible");
+        }
+      }
+    }, 800);
 
     const mo = new MutationObserver(observeAll);
     mo.observe(document.body, { childList: true, subtree: true });
@@ -337,6 +348,9 @@ function useScrollReveal() {
     return () => {
       io.disconnect();
       mo.disconnect();
+      clearTimeout(t1);
+      clearTimeout(t2);
+      clearTimeout(t3);
     };
   }, []);
 }
