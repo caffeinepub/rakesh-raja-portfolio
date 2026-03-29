@@ -1,0 +1,261 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@font-face {
+  font-family: "BricolageGrotesque";
+  src: url("/assets/fonts/BricolageGrotesque.woff2") format("woff2");
+  font-weight: 200 800;
+  font-display: swap;
+}
+
+@font-face {
+  font-family: "Satoshi";
+  src: url("/assets/fonts/Satoshi.woff2") format("woff2");
+  font-weight: 300 700;
+  font-display: swap;
+}
+
+@layer base {
+  :root {
+    --radius: 0.75rem;
+
+    /* Dark portfolio theme */
+    --background: 0.11 0.015 240;
+    --foreground: 0.96 0.005 230;
+    --card: 0.14 0.018 240;
+    --card-foreground: 0.96 0.005 230;
+    --popover: 0.18 0.02 235;
+    --popover-foreground: 0.96 0.005 230;
+    --primary: 0.58 0.2 250;
+    --primary-foreground: 0.98 0 0;
+    --secondary: 0.18 0.02 235;
+    --secondary-foreground: 0.96 0.005 230;
+    --muted: 0.18 0.02 235;
+    --muted-foreground: 0.58 0.015 230;
+    --accent: 0.71 0.1 75;
+    --accent-foreground: 0.11 0.015 240;
+    --destructive: 0.577 0.245 27.325;
+    --destructive-foreground: 0.985 0 0;
+    --border: 0.23 0.02 235;
+    --input: 0.23 0.02 235;
+    --ring: 0.58 0.2 250;
+    --chart-1: 0.58 0.2 250;
+    --chart-2: 0.71 0.1 75;
+    --chart-3: 0.72 0.015 230;
+    --chart-4: 0.58 0.015 230;
+    --chart-5: 0.45 0.02 235;
+    --sidebar: 0.14 0.018 240;
+    --sidebar-foreground: 0.96 0.005 230;
+    --sidebar-primary: 0.58 0.2 250;
+    --sidebar-primary-foreground: 0.98 0 0;
+    --sidebar-accent: 0.18 0.02 235;
+    --sidebar-accent-foreground: 0.96 0.005 230;
+    --sidebar-border: 0.23 0.02 235;
+    --sidebar-ring: 0.58 0.2 250;
+
+    /* Portfolio color tokens */
+    --color-bg: #0b0f14;
+    --color-panel: #151c24;
+    --color-card: #141b22;
+    --color-card-hover: #1b232c;
+    --color-border: #26303a;
+    --color-text: #f2f5f7;
+    --color-text-secondary: #a7b0ba;
+    --color-text-muted: #7d8792;
+    --color-blue: #1e7bff;
+    --color-blue-light: #2d8cff;
+    --color-gold: #c8a35a;
+    --color-gold-light: #d2b06a;
+  }
+
+  * {
+    @apply border-border;
+    box-sizing: border-box;
+  }
+
+  html {
+    scroll-behavior: smooth;
+  }
+
+  body {
+    background-color: var(--color-bg);
+    color: var(--color-text);
+    font-family: "Satoshi", "Plus Jakarta Sans", system-ui, sans-serif;
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+  }
+
+  h1,
+  h2,
+  h3,
+  h4,
+  h5,
+  h6 {
+    font-family: "BricolageGrotesque", "Satoshi", system-ui, sans-serif;
+  }
+}
+
+/* ===== Scroll reveal animations ===== */
+.reveal {
+  opacity: 0;
+  transform: translateY(32px);
+  transition: opacity 0.65s ease, transform 0.65s ease;
+}
+
+.reveal.visible {
+  opacity: 1;
+  transform: translateY(0);
+}
+
+.reveal-delay-1 {
+  transition-delay: 0.1s;
+}
+.reveal-delay-2 {
+  transition-delay: 0.2s;
+}
+.reveal-delay-3 {
+  transition-delay: 0.3s;
+}
+.reveal-delay-4 {
+  transition-delay: 0.4s;
+}
+
+/* ===== Hero decorative shapes ===== */
+.hero-orb {
+  position: absolute;
+  border-radius: 50%;
+  border: 1px solid rgba(30, 123, 255, 0.25);
+  animation: orb-pulse 4s ease-in-out infinite;
+}
+
+.hero-orb-glow {
+  position: absolute;
+  border-radius: 50%;
+  background: radial-gradient(
+    circle,
+    rgba(30, 123, 255, 0.15) 0%,
+    transparent 70%
+  );
+  animation: orb-pulse 6s ease-in-out infinite reverse;
+}
+
+@keyframes orb-pulse {
+  0%,
+  100% {
+    opacity: 0.6;
+    transform: scale(1);
+  }
+  50% {
+    opacity: 1;
+    transform: scale(1.04);
+  }
+}
+
+.glow-dot {
+  position: absolute;
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  background: var(--color-blue);
+  box-shadow: 0 0 12px 4px rgba(30, 123, 255, 0.7);
+  animation: dot-blink 3s ease-in-out infinite;
+}
+
+@keyframes dot-blink {
+  0%,
+  100% {
+    opacity: 1;
+  }
+  50% {
+    opacity: 0.3;
+  }
+}
+
+/* ===== Timeline ===== */
+.timeline-line {
+  position: absolute;
+  left: 19px;
+  top: 0;
+  bottom: 0;
+  width: 2px;
+  background: linear-gradient(to bottom, var(--color-blue), transparent);
+}
+
+.timeline-node {
+  width: 12px;
+  height: 12px;
+  border-radius: 50%;
+  background: var(--color-blue);
+  box-shadow: 0 0 8px 2px rgba(30, 123, 255, 0.5);
+  flex-shrink: 0;
+  margin-top: 6px;
+}
+
+/* ===== Cards ===== */
+.project-card {
+  background: #161e27;
+  border: 1px solid #2a3440;
+  border-radius: 12px;
+  overflow: hidden;
+  transition: transform 0.25s ease, box-shadow 0.25s ease;
+}
+
+.project-card:hover {
+  transform: translateY(-4px);
+  box-shadow: 0 12px 40px rgba(30, 123, 255, 0.12);
+}
+
+.card-accent-band {
+  height: 4px;
+  width: 100%;
+}
+
+/* ===== Skill pills ===== */
+.skill-pill-blue {
+  display: inline-flex;
+  align-items: center;
+  padding: 5px 14px;
+  border-radius: 999px;
+  background: rgba(30, 123, 255, 0.2);
+  border: 1px solid rgba(30, 123, 255, 0.45);
+  color: var(--color-blue-light);
+  font-size: 0.8rem;
+  font-weight: 600;
+  white-space: nowrap;
+}
+
+.skill-pill-gray {
+  display: inline-flex;
+  align-items: center;
+  padding: 5px 14px;
+  border-radius: 999px;
+  background: rgba(38, 48, 58, 0.6);
+  border: 1px solid var(--color-border);
+  color: var(--color-text-secondary);
+  font-size: 0.8rem;
+  font-weight: 500;
+  white-space: nowrap;
+}
+
+/* ===== Background glow ===== */
+.hero-bg-glow {
+  position: absolute;
+  width: 600px;
+  height: 600px;
+  border-radius: 50%;
+  background: radial-gradient(
+    circle,
+    rgba(30, 123, 255, 0.08) 0%,
+    transparent 60%
+  );
+  pointer-events: none;
+}
+
+/* ===== Header ===== */
+.header-glass {
+  background: rgba(11, 15, 20, 0.85);
+  backdrop-filter: blur(16px);
+  -webkit-backdrop-filter: blur(16px);
+  border-bottom: 1px solid rgba(38, 48, 58, 0.8);
+}

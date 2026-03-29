@@ -1,0 +1,27 @@
+import type { Principal } from "@icp-sdk/core/principal";
+export interface Some<T> {
+    __kind__: "Some";
+    value: T;
+}
+export interface None {
+    __kind__: "None";
+}
+export type Option<T> = Some<T> | None;
+export interface Review {
+    id: bigint;
+    name: string;
+    role: string;
+    reviewText: string;
+    company: string;
+    timestamp: bigint;
+    rating: bigint;
+}
+export interface backendInterface {
+    getReview(id: bigint): Promise<Review>;
+    getReviews(): Promise<Array<Review>>;
+    submitReview(name: string, role: string, company: string, reviewText: string, rating: bigint): Promise<bigint>;
+    recordVisit(dateStr: string): Promise<void>;
+    getTotalVisits(): Promise<bigint>;
+    getDailyVisits(): Promise<Array<[string, bigint]>>;
+    getReviewCount(): Promise<bigint>;
+}
