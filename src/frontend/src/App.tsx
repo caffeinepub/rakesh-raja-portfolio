@@ -665,8 +665,8 @@ function HeroProfilePhoto() {
         {/* Profile photo */}
         <div
           style={{
-            width: "calc(100% - 80px)",
-            height: "calc(100% - 80px)",
+            width: "calc(100% - 40px)",
+            height: "calc(100% - 40px)",
             borderRadius: "50%",
             overflow: "hidden",
             border: "3px solid rgba(30,123,255,0.5)",
@@ -776,6 +776,207 @@ function HeroProfilePhoto() {
           }}
         >
           5+ Years
+        </div>
+        {/* ===== Design Tool Badges ===== */}
+        {/* Scissors / Cut Tool */}
+        <div
+          style={{
+            position: "absolute",
+            top: "0%",
+            right: "5%",
+            background: "rgba(10,10,20,0.85)",
+            border: "1px solid rgba(30,123,255,0.5)",
+            borderRadius: 8,
+            padding: "6px 10px",
+            display: "flex",
+            alignItems: "center",
+            gap: 5,
+            fontSize: 10,
+            fontWeight: 600,
+            color: "#7eb8ff",
+            boxShadow: "0 0 10px rgba(30,123,255,0.3)",
+            animation: "float 3.2s ease-in-out infinite alternate",
+            animationDelay: "0.2s",
+            pointerEvents: "none",
+            zIndex: 3,
+            whiteSpace: "nowrap",
+          }}
+        >
+          <svg
+            aria-hidden="true"
+            width="14"
+            height="14"
+            viewBox="0 0 24 24"
+            fill="none"
+            stroke="currentColor"
+            strokeWidth="2"
+          >
+            <circle cx="6" cy="6" r="3" />
+            <circle cx="6" cy="18" r="3" />
+            <line x1="20" y1="4" x2="8.12" y2="15.88" />
+            <line x1="14.47" y1="14.48" x2="20" y2="20" />
+            <line x1="8.12" y1="8.12" x2="12" y2="12" />
+          </svg>
+          Cut
+        </div>
+        {/* Mask */}
+        <div
+          style={{
+            position: "absolute",
+            top: "30%",
+            right: "-8%",
+            background: "rgba(10,10,20,0.85)",
+            border: "1px solid rgba(200,163,90,0.5)",
+            borderRadius: 8,
+            padding: "6px 10px",
+            display: "flex",
+            alignItems: "center",
+            gap: 5,
+            fontSize: 10,
+            fontWeight: 600,
+            color: "#e0c47a",
+            boxShadow: "0 0 10px rgba(200,163,90,0.3)",
+            animation: "float2 3.8s ease-in-out infinite alternate",
+            animationDelay: "0.6s",
+            pointerEvents: "none",
+            zIndex: 3,
+            whiteSpace: "nowrap",
+          }}
+        >
+          <svg
+            aria-hidden="true"
+            width="14"
+            height="14"
+            viewBox="0 0 24 24"
+            fill="none"
+            stroke="currentColor"
+            strokeWidth="2"
+          >
+            <circle cx="12" cy="12" r="9" />
+            <path
+              d="M12 3a9 9 0 0 1 0 18V3z"
+              fill="currentColor"
+              opacity="0.5"
+            />
+          </svg>
+          Mask
+        </div>
+        {/* PNG */}
+        <div
+          style={{
+            position: "absolute",
+            bottom: "20%",
+            right: "0%",
+            background: "rgba(10,10,20,0.85)",
+            border: "1px solid rgba(30,123,255,0.5)",
+            borderRadius: 8,
+            padding: "6px 10px",
+            display: "flex",
+            alignItems: "center",
+            gap: 5,
+            fontSize: 10,
+            fontWeight: 600,
+            color: "#7eb8ff",
+            boxShadow: "0 0 10px rgba(30,123,255,0.3)",
+            animation: "float 4.1s ease-in-out infinite alternate",
+            animationDelay: "1.0s",
+            pointerEvents: "none",
+            zIndex: 3,
+            whiteSpace: "nowrap",
+          }}
+        >
+          <svg
+            aria-hidden="true"
+            width="14"
+            height="14"
+            viewBox="0 0 24 24"
+            fill="none"
+            stroke="currentColor"
+            strokeWidth="2"
+          >
+            <path d="M13 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V9z" />
+            <polyline points="13 2 13 9 20 9" />
+          </svg>
+          PNG
+        </div>
+        {/* Layers */}
+        <div
+          style={{
+            position: "absolute",
+            bottom: "5%",
+            left: "5%",
+            background: "rgba(10,10,20,0.85)",
+            border: "1px solid rgba(200,163,90,0.5)",
+            borderRadius: 8,
+            padding: "6px 10px",
+            display: "flex",
+            alignItems: "center",
+            gap: 5,
+            fontSize: 10,
+            fontWeight: 600,
+            color: "#e0c47a",
+            boxShadow: "0 0 10px rgba(200,163,90,0.3)",
+            animation: "float2 3.5s ease-in-out infinite alternate",
+            animationDelay: "1.4s",
+            pointerEvents: "none",
+            zIndex: 3,
+            whiteSpace: "nowrap",
+          }}
+        >
+          <svg
+            aria-hidden="true"
+            width="14"
+            height="14"
+            viewBox="0 0 24 24"
+            fill="none"
+            stroke="currentColor"
+            strokeWidth="2"
+          >
+            <polygon points="12 2 2 7 12 12 22 7 12 2" />
+            <polyline points="2 17 12 22 22 17" />
+            <polyline points="2 12 12 17 22 12" />
+          </svg>
+          Layers
+        </div>
+        {/* Pen Tool */}
+        <div
+          style={{
+            position: "absolute",
+            top: "35%",
+            left: "-8%",
+            background: "rgba(10,10,20,0.85)",
+            border: "1px solid rgba(30,123,255,0.5)",
+            borderRadius: 8,
+            padding: "6px 10px",
+            display: "flex",
+            alignItems: "center",
+            gap: 5,
+            fontSize: 10,
+            fontWeight: 600,
+            color: "#7eb8ff",
+            boxShadow: "0 0 10px rgba(30,123,255,0.3)",
+            animation: "float 3.6s ease-in-out infinite alternate",
+            animationDelay: "1.8s",
+            pointerEvents: "none",
+            zIndex: 3,
+            whiteSpace: "nowrap",
+          }}
+        >
+          <svg
+            aria-hidden="true"
+            width="14"
+            height="14"
+            viewBox="0 0 24 24"
+            fill="none"
+            stroke="currentColor"
+            strokeWidth="2"
+          >
+            <path d="M12 19l7-7 3 3-7 7-3-3z" />
+            <path d="M18 13l-1.5-7.5L2 2l3.5 14.5L13 18l5-5z" />
+            <path d="M2 2l7.586 7.586" />
+            <circle cx="11" cy="11" r="2" />
+          </svg>
+          Pen
         </div>
       </div>
     </>
