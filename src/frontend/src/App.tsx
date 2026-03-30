@@ -50,7 +50,7 @@ import type React from "react";
 const experiences: Experience[] = [
   {
     role: "Visual Designer",
-    company: "RLD Builders",
+    company: "Royal Land & Developers Pvt Ltd",
     period: "Aug 2023 – Present",
     description:
       "Real estate branding, marketing materials, social media creatives. Driving visual consistency across all brand touchpoints.",
@@ -245,8 +245,7 @@ const projects: Project[] = [
       "Dynamic e-commerce video production showcasing product storytelling, motion design, and visual marketing skills.",
     tags: ["Video", "Motion Design", "E-Commerce"],
     accentColor: "linear-gradient(90deg, #F97316, #EA580C)",
-    thumbnail:
-      "https://mir-s3-cdn-cf.behance.net/projects/404/cc71bc203160409.png",
+    thumbnail: "/assets/generated/ecommerce-video-thumb.dim_600x400.jpg",
     link: "https://www.behance.net/gallery/203160409/E-Commerce-VIDEO",
   },
 ];
@@ -270,7 +269,6 @@ const navItems = [
   { label: "Experience", href: "#experience" },
   { label: "Skills", href: "#skills" },
   { label: "Projects", href: "#projects" },
-  { label: "Videos", href: "#videos" },
   { label: "Reviews", href: "#reviews" },
   { label: "Contact", href: "#contact" },
 ];
@@ -390,7 +388,7 @@ function Header() {
             className="font-body text-xs font-medium tracking-widest uppercase"
             style={{ color: "var(--color-text-secondary)" }}
           >
-            UI &amp; Visual Designer
+            Visual &amp; UI Designer
           </span>
         </a>
 
@@ -677,13 +675,13 @@ function HeroProfilePhoto() {
           }}
         >
           <img
-            src="/assets/uploads/2.1-019d39ff-648f-76d8-aac0-35b78a21f9f9-1.png"
-            alt="K. Rakesh Raja – UI & Visual Designer"
+            src="/assets/uploads/gemini_generated_image_p3zf2jp3zf2jp3zf-019d3db5-2238-7630-af81-61df134deaf4-1.png"
+            alt="K. Rakesh Raja – Visual & UI Designer"
             style={{
               width: "100%",
               height: "100%",
               objectFit: "cover",
-              objectPosition: "center top",
+              objectPosition: "center center",
             }}
           />
         </div>
@@ -866,7 +864,7 @@ function HeroProfilePhoto() {
           style={{
             position: "absolute",
             bottom: "20%",
-            right: "0%",
+            right: "-16%",
             background: "rgba(10,10,20,0.85)",
             border: "1px solid rgba(30,123,255,0.5)",
             borderRadius: 8,
@@ -942,7 +940,7 @@ function HeroProfilePhoto() {
         <div
           style={{
             position: "absolute",
-            top: "35%",
+            top: "20%",
             left: "-8%",
             background: "rgba(10,10,20,0.85)",
             border: "1px solid rgba(30,123,255,0.5)",
@@ -1047,7 +1045,7 @@ function HeroSection() {
                 className="font-display text-xl lg:text-2xl font-bold uppercase tracking-[0.15em]"
                 style={{ color: "var(--color-gold)" }}
               >
-                UI &amp; Visual Designer
+                Visual &amp; UI Designer
               </span>
             </div>
 
@@ -1611,7 +1609,15 @@ function ReviewsSection() {
       const sorted = [...data].sort(
         (a, b) => Number(b.timestamp) - Number(a.timestamp),
       );
-      setReviews(sorted);
+      // Deduplicate: keep only the most recent review per person
+      const seen = new Set<string>();
+      const deduped = sorted.filter((r) => {
+        const key = r.name.trim().toLowerCase();
+        if (seen.has(key)) return false;
+        seen.add(key);
+        return true;
+      });
+      setReviews(deduped);
     } catch (e) {
       console.error("Failed to fetch reviews", e);
     } finally {
@@ -1646,7 +1652,13 @@ function ReviewsSection() {
       setReviewText("");
       setRating(5);
       setSubmitted(true);
+      // Small delay to let IC replicate the new review before querying
+      await new Promise((r) => setTimeout(r, 1500));
       await fetchReviews();
+      // Re-fetch again after 3 more seconds as a safety net
+      setTimeout(() => {
+        fetchReviews();
+      }, 3000);
       setTimeout(() => setSubmitted(false), 5000);
     } catch (e) {
       setError("Failed to submit review. Please try again.");
