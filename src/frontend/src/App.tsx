@@ -63,13 +63,6 @@ const experiences: Experience[] = [
       "Corporate branding and presentation designs. Elevated client-facing materials to reflect premium consultancy positioning.",
   },
   {
-    role: "Freelance Designer & Video Editor",
-    company: "SQE One",
-    period: "2025",
-    description:
-      "Freelance UI design and video editing for SQE One — designed the website, landing pages, and produced motion content. Delivered end-to-end visual assets from concept to final output.",
-  },
-  {
     role: "Designer & Video Editor",
     company: "SQE One – Free Launching",
     period: "2025 – Present",
