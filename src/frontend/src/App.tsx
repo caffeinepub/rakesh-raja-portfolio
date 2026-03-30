@@ -822,7 +822,7 @@ function HeroSection() {
 
             <h1 className="font-display leading-none mb-6">
               <span
-                className="reveal reveal-delay-1 block text-6xl lg:text-8xl font-extrabold uppercase tracking-tight"
+                className="reveal reveal-delay-1 block text-4xl lg:text-6xl font-extrabold uppercase tracking-tight"
                 style={{ color: "var(--color-blue)" }}
               >
                 Hello,
