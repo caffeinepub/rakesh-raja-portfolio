@@ -20,12 +20,19 @@ export interface Review {
   'rating' : bigint,
 }
 export interface _SERVICE {
+  'deleteReview' : ActorMethod<[string, bigint], boolean>,
+  'getDailyVisits' : ActorMethod<[], Array<[string, bigint]>>,
   'getReview' : ActorMethod<[bigint], Review>,
+  'getReviewCount' : ActorMethod<[], bigint>,
   'getReviews' : ActorMethod<[], Array<Review>>,
+  'getTotalVisits' : ActorMethod<[], bigint>,
+  'recordVisit' : ActorMethod<[string], undefined>,
+  'setAdminPin' : ActorMethod<[string, string], boolean>,
   'submitReview' : ActorMethod<
     [string, string, string, string, bigint],
     bigint
   >,
+  'verifyAdmin' : ActorMethod<[string], boolean>,
 }
 export declare const idlService: IDL.ServiceClass;
 export declare const idlInitArgs: IDL.Type[];

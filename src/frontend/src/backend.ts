@@ -99,12 +99,47 @@ export interface Review {
     rating: bigint;
 }
 export interface backendInterface {
+    deleteReview(pin: string, id: bigint): Promise<boolean>;
+    getDailyVisits(): Promise<Array<[string, bigint]>>;
     getReview(id: bigint): Promise<Review>;
+    getReviewCount(): Promise<bigint>;
     getReviews(): Promise<Array<Review>>;
+    getTotalVisits(): Promise<bigint>;
+    recordVisit(dateStr: string): Promise<void>;
+    setAdminPin(oldPin: string, newPin: string): Promise<boolean>;
     submitReview(name: string, role: string, company: string, reviewText: string, rating: bigint): Promise<bigint>;
+    verifyAdmin(pin: string): Promise<boolean>;
 }
 export class Backend implements backendInterface {
     constructor(private actor: ActorSubclass<_SERVICE>, private _uploadFile: (file: ExternalBlob) => Promise<Uint8Array>, private _downloadFile: (file: Uint8Array) => Promise<ExternalBlob>, private processError?: (error: unknown) => never){}
+    async deleteReview(arg0: string, arg1: bigint): Promise<boolean> {
+        if (this.processError) {
+            try {
+                const result = await this.actor.deleteReview(arg0, arg1);
+                return result;
+            } catch (e) {
+                this.processError(e);
+                throw new Error("unreachable");
+            }
+        } else {
+            const result = await this.actor.deleteReview(arg0, arg1);
+            return result;
+        }
+    }
+    async getDailyVisits(): Promise<Array<[string, bigint]>> {
+        if (this.processError) {
+            try {
+                const result = await this.actor.getDailyVisits();
+                return result;
+            } catch (e) {
+                this.processError(e);
+                throw new Error("unreachable");
+            }
+        } else {
+            const result = await this.actor.getDailyVisits();
+            return result;
+        }
+    }
     async getReview(arg0: bigint): Promise<Review> {
         if (this.processError) {
             try {
@@ -116,6 +151,20 @@ export class Backend implements backendInterface {
             }
         } else {
             const result = await this.actor.getReview(arg0);
+            return result;
+        }
+    }
+    async getReviewCount(): Promise<bigint> {
+        if (this.processError) {
+            try {
+                const result = await this.actor.getReviewCount();
+                return result;
+            } catch (e) {
+                this.processError(e);
+                throw new Error("unreachable");
+            }
+        } else {
+            const result = await this.actor.getReviewCount();
             return result;
         }
     }
@@ -133,6 +182,48 @@ export class Backend implements backendInterface {
             return result;
         }
     }
+    async getTotalVisits(): Promise<bigint> {
+        if (this.processError) {
+            try {
+                const result = await this.actor.getTotalVisits();
+                return result;
+            } catch (e) {
+                this.processError(e);
+                throw new Error("unreachable");
+            }
+        } else {
+            const result = await this.actor.getTotalVisits();
+            return result;
+        }
+    }
+    async recordVisit(arg0: string): Promise<void> {
+        if (this.processError) {
+            try {
+                const result = await this.actor.recordVisit(arg0);
+                return result;
+            } catch (e) {
+                this.processError(e);
+                throw new Error("unreachable");
+            }
+        } else {
+            const result = await this.actor.recordVisit(arg0);
+            return result;
+        }
+    }
+    async setAdminPin(arg0: string, arg1: string): Promise<boolean> {
+        if (this.processError) {
+            try {
+                const result = await this.actor.setAdminPin(arg0, arg1);
+                return result;
+            } catch (e) {
+                this.processError(e);
+                throw new Error("unreachable");
+            }
+        } else {
+            const result = await this.actor.setAdminPin(arg0, arg1);
+            return result;
+        }
+    }
     async submitReview(arg0: string, arg1: string, arg2: string, arg3: string, arg4: bigint): Promise<bigint> {
         if (this.processError) {
             try {
@@ -144,6 +235,20 @@ export class Backend implements backendInterface {
             }
         } else {
             const result = await this.actor.submitReview(arg0, arg1, arg2, arg3, arg4);
+            return result;
+        }
+    }
+    async verifyAdmin(arg0: string): Promise<boolean> {
+        if (this.processError) {
+            try {
+                const result = await this.actor.verifyAdmin(arg0);
+                return result;
+            } catch (e) {
+                this.processError(e);
+                throw new Error("unreachable");
+            }
+        } else {
+            const result = await this.actor.verifyAdmin(arg0);
             return result;
         }
     }

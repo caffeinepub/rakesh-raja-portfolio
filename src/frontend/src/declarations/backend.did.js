@@ -19,13 +19,24 @@ export const Review = IDL.Record({
 });
 
 export const idlService = IDL.Service({
+  'deleteReview' : IDL.Func([IDL.Text, IDL.Nat], [IDL.Bool], []),
+  'getDailyVisits' : IDL.Func(
+      [],
+      [IDL.Vec(IDL.Tuple(IDL.Text, IDL.Nat))],
+      ['query'],
+    ),
   'getReview' : IDL.Func([IDL.Nat], [Review], ['query']),
+  'getReviewCount' : IDL.Func([], [IDL.Nat], ['query']),
   'getReviews' : IDL.Func([], [IDL.Vec(Review)], ['query']),
+  'getTotalVisits' : IDL.Func([], [IDL.Nat], ['query']),
+  'recordVisit' : IDL.Func([IDL.Text], [], []),
+  'setAdminPin' : IDL.Func([IDL.Text, IDL.Text], [IDL.Bool], []),
   'submitReview' : IDL.Func(
       [IDL.Text, IDL.Text, IDL.Text, IDL.Text, IDL.Nat],
       [IDL.Nat],
       [],
     ),
+  'verifyAdmin' : IDL.Func([IDL.Text], [IDL.Bool], ['query']),
 });
 
 export const idlInitArgs = [];
@@ -42,13 +53,24 @@ export const idlFactory = ({ IDL }) => {
   });
   
   return IDL.Service({
+    'deleteReview' : IDL.Func([IDL.Text, IDL.Nat], [IDL.Bool], []),
+    'getDailyVisits' : IDL.Func(
+        [],
+        [IDL.Vec(IDL.Tuple(IDL.Text, IDL.Nat))],
+        ['query'],
+      ),
     'getReview' : IDL.Func([IDL.Nat], [Review], ['query']),
+    'getReviewCount' : IDL.Func([], [IDL.Nat], ['query']),
     'getReviews' : IDL.Func([], [IDL.Vec(Review)], ['query']),
+    'getTotalVisits' : IDL.Func([], [IDL.Nat], ['query']),
+    'recordVisit' : IDL.Func([IDL.Text], [], []),
+    'setAdminPin' : IDL.Func([IDL.Text, IDL.Text], [IDL.Bool], []),
     'submitReview' : IDL.Func(
         [IDL.Text, IDL.Text, IDL.Text, IDL.Text, IDL.Nat],
         [IDL.Nat],
         [],
       ),
+    'verifyAdmin' : IDL.Func([IDL.Text], [IDL.Bool], ['query']),
   });
 };
 

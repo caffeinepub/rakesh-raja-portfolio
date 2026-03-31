@@ -1,28 +1,19 @@
 # Rakesh Raja Portfolio
 
 ## Current State
-Full portfolio site with hero section, experience, skills, projects (Behance integrated), education, contact, and client reviews. Backend stores reviews with submit/get functions. Visit tracking exists in backend.
+The portfolio is fully built with a Motoko backend that includes review management, admin PIN authentication, visit tracking, and admin controls (verifyAdmin, setAdminPin, deleteReview, recordVisit, getTotalVisits, getDailyVisits, getReviewCount). However, the auto-generated frontend bindings (backend.did.js, backend.ts, backend.d.ts) are out of sync — they only expose 3 functions (getReview, getReviews, submitReview), causing the dashboard login to throw "Error verifying PIN" because verifyAdmin doesn't exist on the actor.
 
 ## Requested Changes (Diff)
 
 ### Add
-- Admin dashboard at `/dashboard` route (separate page, does not affect main portfolio)
-- PIN-based login screen (default PIN: rakesh2025)
-- Dashboard tabs: Reviews Manager, Visit Stats, Change PIN
-- Reviews Manager: view all reviews, delete any review
-- Visit Stats: total visits, daily breakdown chart
-- Change PIN: update admin PIN
+- Nothing new
 
 ### Modify
-- Backend: add `verifyAdmin`, `setAdminPin`, `deleteReview` functions
-- backend.d.ts: update with new function signatures
-- App.tsx: add route `/dashboard` → Dashboard component (keep main portfolio untouched)
+- Regenerate Motoko backend so all functions are included in the bindings
 
 ### Remove
-- Nothing removed from main portfolio
+- Nothing
 
 ## Implementation Plan
-1. Update backend (done)
-2. Update backend.d.ts with new functions
-3. Create Dashboard.tsx component with PIN login + tabs
-4. Update App.tsx to add /dashboard route
+1. Regenerate Motoko backend to include all functions: getReview, getReviews, submitReview, verifyAdmin, setAdminPin, deleteReview, recordVisit, getTotalVisits, getDailyVisits, getReviewCount
+2. No frontend changes needed — Dashboard.tsx already uses all these functions correctly

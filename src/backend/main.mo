@@ -4,7 +4,9 @@ import Int "mo:core/Int";
 import Runtime "mo:core/Runtime";
 import Time "mo:core/Time";
 import Order "mo:core/Order";
+import Migration "migration";
 
+(with migration = Migration.run)
 actor {
   type Review = {
     id : Nat;
@@ -33,8 +35,10 @@ actor {
   };
 
   public shared func setAdminPin(oldPin : Text, newPin : Text) : async Bool {
-    if (oldPin != adminPin) return false;
-    if (newPin == "") return false;
+    if (oldPin != adminPin) {
+      return false;
+    };
+    if (newPin == "") { return false };
     adminPin := newPin;
     true;
   };
@@ -47,9 +51,9 @@ actor {
   };
 
   public shared func submitReview(name : Text, role : Text, company : Text, reviewText : Text, rating : Nat) : async Nat {
-    if (name == "") Runtime.trap("Name cannot be empty");
-    if (reviewText == "") Runtime.trap("Review text cannot be empty");
-    if (rating < 1 or rating > 5) Runtime.trap("Rating must be 1-5");
+    if (name == "") { Runtime.trap("Name cannot be empty") };
+    if (reviewText == "") { Runtime.trap("Review text cannot be empty") };
+    if (rating < 1 or rating > 5) { Runtime.trap("Rating must be 1-5") };
     let review : Review = {
       id = nextReviewId;
       name; role; company; reviewText; rating;
@@ -61,7 +65,7 @@ actor {
   };
 
   public shared func deleteReview(pin : Text, id : Nat) : async Bool {
-    if (pin != adminPin) return false;
+    if (pin != adminPin) { return false };
     switch (reviews.get(id)) {
       case (null) { false };
       case (?_) {
