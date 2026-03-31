@@ -16,19 +16,27 @@ actor {
     timestamp : Int;
   };
 
-  type VisitRecord = {
-    timestamp : Int;
-    date : Text;
-  };
-
   let reviews = Map.empty<Nat, Review>();
   var nextReviewId = 0;
 
   var totalVisits : Nat = 0;
   let dailyVisits = Map.empty<Text, Nat>();
 
+  var adminPin : Text = "rakesh2025";
+
   func compareReviewsByTimeDesc(a : Review, b : Review) : Order.Order {
     Int.compare(b.timestamp, a.timestamp);
+  };
+
+  public query func verifyAdmin(pin : Text) : async Bool {
+    pin == adminPin;
+  };
+
+  public shared func setAdminPin(oldPin : Text, newPin : Text) : async Bool {
+    if (oldPin != adminPin) return false;
+    if (newPin == "") return false;
+    adminPin := newPin;
+    true;
   };
 
   public query func getReview(id : Nat) : async Review {
@@ -52,11 +60,21 @@ actor {
     review.id;
   };
 
+  public shared func deleteReview(pin : Text, id : Nat) : async Bool {
+    if (pin != adminPin) return false;
+    switch (reviews.get(id)) {
+      case (null) { false };
+      case (?_) {
+        let _ = reviews.remove(id);
+        true;
+      };
+    };
+  };
+
   public query func getReviews() : async [Review] {
     reviews.values().sort(compareReviewsByTimeDesc).toArray();
   };
 
-  // Record a page visit with a date string like "2026-03-29"
   public shared func recordVisit(dateStr : Text) : async () {
     totalVisits += 1;
     let current = switch (dailyVisits.get(dateStr)) {
@@ -70,7 +88,6 @@ actor {
     totalVisits;
   };
 
-  // Returns daily visit counts as array of (date, count)
   public query func getDailyVisits() : async [(Text, Nat)] {
     dailyVisits.entries().toArray();
   };

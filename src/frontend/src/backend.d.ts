@@ -20,6 +20,9 @@ export interface backendInterface {
     getReview(id: bigint): Promise<Review>;
     getReviews(): Promise<Array<Review>>;
     submitReview(name: string, role: string, company: string, reviewText: string, rating: bigint): Promise<bigint>;
+    deleteReview(pin: string, id: bigint): Promise<boolean>;
+    verifyAdmin(pin: string): Promise<boolean>;
+    setAdminPin(oldPin: string, newPin: string): Promise<boolean>;
     recordVisit(dateStr: string): Promise<void>;
     getTotalVisits(): Promise<bigint>;
     getDailyVisits(): Promise<Array<[string, bigint]>>;
