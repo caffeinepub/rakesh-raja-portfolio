@@ -2297,7 +2297,7 @@ function Portfolio() {
 
         const mapped: Partial<PortfolioData> = {};
 
-        if (backendExps.length > 0) {
+        if (backendExps.length >= DEFAULT_EXPERIENCES.length) {
           mapped.experiences = backendExps
             .slice()
             .sort(

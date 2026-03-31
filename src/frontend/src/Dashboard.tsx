@@ -175,10 +175,25 @@ export default function Dashboard() {
     loadProjects,
   ]);
 
-  function handleLogin() {
+  async function handleLogin() {
     setLoginLoading(true);
     setLoginError("");
     try {
+      let isValid = false;
+      if (fullActor) {
+        isValid = await fullActor.verifyAdmin(pin);
+      } else {
+        const storedPin = localStorage.getItem("adminPin") ?? "rakesh2025";
+        isValid = pin === storedPin;
+      }
+      if (isValid) {
+        setIsLoggedIn(true);
+        setCurrentPin(pin);
+        setPin("");
+      } else {
+        setLoginError("Incorrect PIN. Please try again.");
+      }
+    } catch {
       const storedPin = localStorage.getItem("adminPin") ?? "rakesh2025";
       if (pin === storedPin) {
         setIsLoggedIn(true);
