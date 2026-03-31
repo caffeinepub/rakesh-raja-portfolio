@@ -281,6 +281,7 @@ interface PortfolioData {
   experiences: Experience[];
   designSkills: string[];
   toolSkills: string[];
+  skillCategories: { category: string; items: string[] }[];
   projects: Project[];
 }
 
@@ -288,6 +289,10 @@ const PortfolioDataContext = createContext<PortfolioData>({
   experiences: DEFAULT_EXPERIENCES,
   designSkills: DEFAULT_DESIGN_SKILLS,
   toolSkills: DEFAULT_TOOL_SKILLS,
+  skillCategories: [
+    { category: "Design Skills", items: DEFAULT_DESIGN_SKILLS },
+    { category: "Tools", items: DEFAULT_TOOL_SKILLS },
+  ],
   projects: DEFAULT_PROJECTS,
 });
 
@@ -1319,7 +1324,7 @@ function ExperienceSection() {
 
 // ===== SKILLS =====
 function SkillsSection() {
-  const { designSkills, toolSkills } = usePortfolioData();
+  const { skillCategories } = usePortfolioData();
   return (
     <section id="skills" className="py-24" data-ocid="skills.section">
       <div style={{ maxWidth: "1200px" }} className="mx-auto px-6">
@@ -1339,39 +1344,34 @@ function SkillsSection() {
         </h2>
 
         <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-10">
-          {/* Design skills */}
-          <div className="reveal">
-            <h3
-              className="font-body text-xs font-bold uppercase tracking-[0.25em] mb-5"
-              style={{ color: "var(--color-text-muted)" }}
-            >
-              Design
-            </h3>
-            <div className="flex flex-wrap gap-3">
-              {designSkills.map((skill) => (
-                <span key={skill} className="skill-pill-blue">
-                  {skill}
-                </span>
-              ))}
-            </div>
-          </div>
-
-          {/* Tool skills */}
-          <div className="reveal reveal-delay-1">
-            <h3
-              className="font-body text-xs font-bold uppercase tracking-[0.25em] mb-5"
-              style={{ color: "var(--color-text-muted)" }}
-            >
-              Tools
-            </h3>
-            <div className="flex flex-wrap gap-3">
-              {toolSkills.map((tool) => (
-                <span key={tool} className="skill-pill-gray">
-                  {tool}
-                </span>
-              ))}
-            </div>
-          </div>
+          {skillCategories.map((cat, i) => {
+            const isTools = cat.category.toLowerCase().includes("tool");
+            return (
+              <div
+                key={cat.category}
+                className={`reveal reveal-delay-${Math.min(i + 1, 4)}`}
+              >
+                <h3
+                  className="font-body text-xs font-bold uppercase tracking-[0.25em] mb-5"
+                  style={{ color: "var(--color-text-muted)" }}
+                >
+                  {cat.category}
+                </h3>
+                <div className="flex flex-wrap gap-3">
+                  {cat.items.map((item) => (
+                    <span
+                      key={item}
+                      className={
+                        isTools ? "skill-pill-gray" : "skill-pill-blue"
+                      }
+                    >
+                      {item}
+                    </span>
+                  ))}
+                </div>
+              </div>
+            );
+          })}
         </div>
       </div>
     </section>
@@ -2274,6 +2274,10 @@ function Portfolio() {
     experiences: DEFAULT_EXPERIENCES,
     designSkills: DEFAULT_DESIGN_SKILLS,
     toolSkills: DEFAULT_TOOL_SKILLS,
+    skillCategories: [
+      { category: "Design Skills", items: DEFAULT_DESIGN_SKILLS },
+      { category: "Tools", items: DEFAULT_TOOL_SKILLS },
+    ],
     projects: DEFAULT_PROJECTS,
   });
 
@@ -2317,23 +2321,49 @@ function Portfolio() {
           );
           if (designCat) mapped.designSkills = designCat.items;
           if (toolCat) mapped.toolSkills = toolCat.items;
+          // Store ALL skill categories so SkillsSection can render them all
+          mapped.skillCategories = backendSkills
+            .slice()
+            .sort(
+              (a: SkillCategory, b: SkillCategory) =>
+                Number(a.sortOrder) - Number(b.sortOrder),
+            )
+            .map((s: SkillCategory) => ({
+              category: s.category,
+              items: s.items,
+            }));
         }
 
         if (backendProjs.length > 0) {
+          const accentColors = [
+            "linear-gradient(90deg, #1E7BFF, #0D5ECC)",
+            "linear-gradient(90deg, #1FD1A0, #0DA87E)",
+            "linear-gradient(90deg, #C8A35A, #E8C87A)",
+            "linear-gradient(90deg, #F97316, #EA580C)",
+          ];
           mapped.projects = backendProjs
             .slice()
             .sort(
               (a: BackendProject, b: BackendProject) =>
                 Number(a.sortOrder) - Number(b.sortOrder),
             )
-            .map((p: BackendProject) => ({
-              title: p.title,
-              link: p.url,
-              thumbnail: p.imageUrl || "",
-              description: "",
-              tags: [],
-              accentColor: "#7c3aed",
-            }));
+            .map((p: BackendProject, idx: number) => {
+              // Try to find matching default project to preserve its metadata
+              const defaultMatch = DEFAULT_PROJECTS.find(
+                (d) => d.title === p.title || d.link === p.url,
+              );
+              return {
+                title: p.title,
+                link: p.url,
+                thumbnail: p.imageUrl || defaultMatch?.thumbnail || "",
+                description:
+                  defaultMatch?.description || "View this project on Behance.",
+                tags: defaultMatch?.tags || [],
+                accentColor:
+                  defaultMatch?.accentColor ||
+                  accentColors[idx % accentColors.length],
+              };
+            });
         }
 
         if (Object.keys(mapped).length > 0) {
