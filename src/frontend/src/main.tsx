@@ -1,7 +1,6 @@
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import ReactDOM from "react-dom/client";
 import App from "./App";
-import Dashboard from "./Dashboard";
 import { InternetIdentityProvider } from "./hooks/useInternetIdentity";
 import "./index.css";
 
@@ -16,12 +15,11 @@ declare global {
 }
 
 const queryClient = new QueryClient();
-const isDashboard = window.location.pathname === "/dashboard";
 
 ReactDOM.createRoot(document.getElementById("root")!).render(
   <QueryClientProvider client={queryClient}>
     <InternetIdentityProvider>
-      {isDashboard ? <Dashboard /> : <App />}
+      <App />
     </InternetIdentityProvider>
   </QueryClientProvider>,
 );

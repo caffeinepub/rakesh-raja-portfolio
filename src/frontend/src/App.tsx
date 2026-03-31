@@ -45,6 +45,7 @@ interface ContactItem {
 }
 
 import type React from "react";
+import Dashboard from "./Dashboard";
 
 // ===== DATA =====
 const experiences: Experience[] = [
@@ -2143,6 +2144,18 @@ function Footer() {
           className="font-body text-xs"
           style={{ color: "var(--color-text-muted)" }}
         >
+          <a
+            href="/dashboard"
+            className="transition-colors hover:text-white opacity-40 hover:opacity-100"
+            style={{ color: "var(--color-text-muted)" }}
+          >
+            Admin
+          </a>
+        </div>
+        <div
+          className="font-body text-xs"
+          style={{ color: "var(--color-text-muted)" }}
+        >
           Built with ❤️ using{" "}
           <a
             href={caffeineUrl}
@@ -2161,6 +2174,17 @@ function Footer() {
 
 // ===== APP =====
 export default function App() {
+  if (
+    typeof window !== "undefined" &&
+    window.location.pathname === "/dashboard"
+  ) {
+    return <Dashboard />;
+  }
+
+  return <Portfolio />;
+}
+
+function Portfolio() {
   useScrollReveal();
   return (
     <div style={{ background: "var(--color-bg)", minHeight: "100vh" }}>
