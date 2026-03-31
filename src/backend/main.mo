@@ -7,9 +7,9 @@ import Time "mo:core/Time";
 import Order "mo:core/Order";
 import Runtime "mo:core/Runtime";
 import Iter "mo:core/Iter";
-import Migration "migration";
 
-(with migration = Migration.run)
+
+
 actor {
   type Review = {
     id : Nat;
@@ -50,17 +50,90 @@ actor {
     count : Nat;
   };
 
+  // Stable storage arrays - persist across upgrades
+  stable var stableReviews : [Review] = [];
+  stable var stableExperiences : [Experience] = [];
+  stable var stableSkills : [SkillCategory] = [];
+  stable var stableProjects : [Project] = [];
+  stable var stableVisits : [(Text, Nat)] = [];
+  stable var stableNextExperienceId : Nat = 0;
+  stable var stableNextSkillId : Nat = 0;
+  stable var stableNextProjectId : Nat = 0;
+  stable var adminPin : Text = "rakesh2025";
+
+  // In-memory maps rebuilt from stable storage
   let reviewStore = Map.empty<Nat, Review>();
   let experienceStore = Map.empty<Nat, Experience>();
   let skillStore = Map.empty<Nat, SkillCategory>();
   let projectStore = Map.empty<Nat, Project>();
   let visitStore = Map.empty<Text, Nat>();
 
-  var nextExperienceId = 0;
-  var nextSkillId = 0;
-  var nextProjectId = 0;
+  var nextExperienceId = stableNextExperienceId;
+  var nextSkillId = stableNextSkillId;
+  var nextProjectId = stableNextProjectId;
 
-  var adminPin : Text = "rakesh2025";
+  // Restore from stable storage on upgrade
+  do {
+    for (r in stableReviews.vals()) { reviewStore.add(r.id, r) };
+    for (e in stableExperiences.vals()) { experienceStore.add(e.id, e) };
+    for (s in stableSkills.vals()) { skillStore.add(s.id, s) };
+    for (p in stableProjects.vals()) { projectStore.add(p.id, p) };
+    for ((date, count) in stableVisits.vals()) { visitStore.add(date, count) };
+  };
+
+  // Seed default data if stores are empty (first deploy)
+  do {
+    if (experienceStore.size() == 0) {
+      let defaults : [Experience] = [
+        { id = 0; title = "Designer & Video Editor"; company = "SQE One Free Launching"; period = "2025 – Present"; description = "UI/UX design and video editing for product launches and digital campaigns."; sortOrder = 0 },
+        { id = 1; title = "UI & Visual Designer"; company = "Freelance"; period = "2022 – 2025"; description = "Branding, UI design, and motion graphics for diverse clients across industries."; sortOrder = 1 },
+        { id = 2; title = "Graphic Designer"; company = "Royal Land & Developers Pvt Ltd"; period = "2021 – 2022"; description = "Marketing collateral, social media graphics, and brand identity for a real estate firm."; sortOrder = 2 },
+        { id = 3; title = "Visual Designer"; company = "Freelance"; period = "2020 – 2021"; description = "International projects and digital branding. Delivered cross-cultural visual solutions for an EdTech platform."; sortOrder = 3 },
+      ];
+      for (e in defaults.vals()) { experienceStore.add(e.id, e) };
+      nextExperienceId := defaults.size();
+    };
+
+    if (skillStore.size() == 0) {
+      let defaults : [SkillCategory] = [
+        { id = 0; category = "Design Skills"; items = ["UI Design", "Visual Design", "Branding & Identity", "Typography", "Motion Graphics", "Video Editing", "Social Media Design", "Print Design"]; sortOrder = 0 },
+        { id = 1; category = "Tools"; items = ["Figma", "Adobe Photoshop", "Adobe Illustrator", "Adobe Premiere Pro", "Adobe After Effects", "Adobe XD", "Canva", "DaVinci Resolve"]; sortOrder = 1 },
+      ];
+      for (s in defaults.vals()) { skillStore.add(s.id, s) };
+      nextSkillId := defaults.size();
+    };
+
+    if (projectStore.size() == 0) {
+      let defaults : [Project] = [
+        { id = 0; title = "Music Broadcast"; url = "https://www.behance.net/gallery/246296377/MUSIC-BROADCAST"; imageUrl = "https://mir-s3-cdn-cf.behance.net/projects/404/cc71bc246296377.Y3JvcCwxMjU1LDk4MiwyNDgsMA.png"; sortOrder = 0 },
+        { id = 1; title = "SQE Project Landing Page"; url = "https://www.behance.net/gallery/246270145/sqe-project-landing-page"; imageUrl = "https://mir-s3-cdn-cf.behance.net/projects/404/9b8f5f246270145.Y3JvcCwxMjE0LDk0OSwwLDA.png"; sortOrder = 1 },
+        { id = 2; title = "DLD Website"; url = "https://www.behance.net/gallery/246264307/dld-website"; imageUrl = "https://mir-s3-cdn-cf.behance.net/projects/404/c07379246264307.Y3JvcCwxMzUwLDEwNTUsMCwxNzA3.png"; sortOrder = 2 },
+        { id = 3; title = "SQE Website"; url = "https://www.behance.net/gallery/246209947/sqe-website"; imageUrl = "https://mir-s3-cdn-cf.behance.net/projects/404/f517f1246209947.Y3JvcCwxOTA0LDE0ODksMCww.png"; sortOrder = 3 },
+        { id = 4; title = "Dashboard UI"; url = "https://www.behance.net/gallery/245993215/dashboard"; imageUrl = "https://mir-s3-cdn-cf.behance.net/projects/404/0bbf1f245993215.Y3JvcCw4MTMsNjM2LDMxMiwyODI.png"; sortOrder = 4 },
+        { id = 5; title = "Food Ordering Tablet App"; url = "https://www.behance.net/gallery/245980909/food-ordering-tablet-app"; imageUrl = "https://mir-s3-cdn-cf.behance.net/projects/404/18d088245980909.Y3JvcCwxNjY0LDEzMDEsNDA3LDE5Nw.png"; sortOrder = 5 },
+        { id = 6; title = "Landing Page"; url = "https://www.behance.net/gallery/245978901/landing-page"; imageUrl = "https://mir-s3-cdn-cf.behance.net/projects/404/9b89d9245978901.Y3JvcCwyNDgwLDE5MzksMCw0NjY.jpg"; sortOrder = 6 },
+        { id = 7; title = "Flyer Design"; url = "https://www.behance.net/gallery/244805011/Flyer"; imageUrl = "https://mir-s3-cdn-cf.behance.net/projects/404/9f5760244805011.69b9e97c1ec32.jpg"; sortOrder = 7 },
+        { id = 8; title = "Investment Posters"; url = "https://www.behance.net/gallery/243774561/Investment-posters"; imageUrl = "https://mir-s3-cdn-cf.behance.net/projects/404/d7d70d243774561.69aaed6eab1ef.jpg"; sortOrder = 8 },
+        { id = 9; title = "Valentine's Day Posters"; url = "https://www.behance.net/gallery/243774207/Valentine-day-special-posters"; imageUrl = "https://mir-s3-cdn-cf.behance.net/projects/404/44c6d7243774207.6994cc6bad7e6.jpg"; sortOrder = 9 },
+        { id = 10; title = "Poster Design"; url = "https://www.behance.net/gallery/243333301/Poster-design"; imageUrl = "https://mir-s3-cdn-cf.behance.net/projects/404/622b71243333301.6994cbb8ab7a0.jpg"; sortOrder = 10 },
+        { id = 11; title = "E-Commerce VIDEO"; url = "https://www.behance.net/gallery/203160409/E-Commerce-VIDEO"; imageUrl = "https://mir-s3-cdn-cf.behance.net/projects/404/203160409.jpg"; sortOrder = 11 },
+      ];
+      for (p in defaults.vals()) { projectStore.add(p.id, p) };
+      nextProjectId := defaults.size();
+    };
+  };
+
+  // Save to stable storage before upgrades
+  system func preupgrade() {
+    stableReviews := reviewStore.values().toArray();
+    stableExperiences := experienceStore.values().toArray();
+    stableSkills := skillStore.values().toArray();
+    stableProjects := projectStore.values().toArray();
+    stableVisits := visitStore.entries().toArray();
+    stableNextExperienceId := nextExperienceId;
+    stableNextSkillId := nextSkillId;
+    stableNextProjectId := nextProjectId;
+  };
 
   func compareReviewsByTimeDesc(a : Review, b : Review) : Order.Order {
     Int.compare(b.timestamp, a.timestamp);

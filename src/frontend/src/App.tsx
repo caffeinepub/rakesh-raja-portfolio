@@ -1622,6 +1622,36 @@ function StarRating({
 }
 
 // ===== REVIEWS SECTION =====
+const REVIEWS_CACHE_KEY = "rakesh_portfolio_reviews";
+
+function saveReviewsToCache(reviews: Review[]) {
+  try {
+    const serializable = reviews.map((r) => ({
+      ...r,
+      id: Number(r.id),
+      rating: Number(r.rating),
+      timestamp: Number(r.timestamp),
+    }));
+    localStorage.setItem(REVIEWS_CACHE_KEY, JSON.stringify(serializable));
+  } catch {}
+}
+
+function loadReviewsFromCache(): Review[] {
+  try {
+    const raw = localStorage.getItem(REVIEWS_CACHE_KEY);
+    if (!raw) return [];
+    const parsed = JSON.parse(raw);
+    return parsed.map((r: any) => ({
+      ...r,
+      id: BigInt(r.id),
+      rating: BigInt(r.rating),
+      timestamp: BigInt(r.timestamp),
+    }));
+  } catch {
+    return [];
+  }
+}
+
 function ReviewsSection() {
   const { actor } = useActor();
   const [reviews, setReviews] = useState<Review[]>([]);
@@ -1644,7 +1674,6 @@ function ReviewsSection() {
       const sorted = [...data].sort(
         (a, b) => Number(b.timestamp) - Number(a.timestamp),
       );
-      // Deduplicate: keep only the most recent review per person
       const seen = new Set<string>();
       const deduped = sorted.filter((r) => {
         const key = r.name.trim().toLowerCase();
@@ -1652,13 +1681,29 @@ function ReviewsSection() {
         seen.add(key);
         return true;
       });
-      setReviews(deduped);
+      if (deduped.length > 0) {
+        saveReviewsToCache(deduped);
+        setReviews(deduped);
+      } else {
+        const cached = loadReviewsFromCache();
+        setReviews(cached);
+      }
     } catch (e) {
       console.error("Failed to fetch reviews", e);
+      const cached = loadReviewsFromCache();
+      setReviews(cached);
     } finally {
       setLoadingReviews(false);
     }
   }, [actor]);
+
+  useEffect(() => {
+    const cached = loadReviewsFromCache();
+    if (cached.length > 0) {
+      setReviews(cached);
+      setLoadingReviews(false);
+    }
+  }, []);
 
   useEffect(() => {
     fetchReviews();
