@@ -10,8 +10,20 @@ import {
   Star,
   X,
 } from "lucide-react";
-import { useCallback, useEffect, useRef, useState } from "react";
-import type { Review } from "./backend.d.ts";
+import {
+  createContext,
+  useCallback,
+  useContext,
+  useEffect,
+  useRef,
+  useState,
+} from "react";
+import type {
+  Experience as BackendExperience,
+  Project as BackendProject,
+  Review,
+  SkillCategory,
+} from "./backend.d.ts";
 import { useActor } from "./hooks/useActor";
 
 // ===== TYPES =====
@@ -48,7 +60,7 @@ import type React from "react";
 import Dashboard from "./Dashboard";
 
 // ===== DATA =====
-const experiences: Experience[] = [
+const DEFAULT_EXPERIENCES: Experience[] = [
   {
     role: "Visual Designer",
     company: "Royal Land & Developers Pvt Ltd",
@@ -107,7 +119,7 @@ const experiences: Experience[] = [
   },
 ];
 
-const designSkills = [
+const DEFAULT_DESIGN_SKILLS = [
   "UI Design (Web & Mobile)",
   "Visual Design & Branding",
   "Social Media Creatives",
@@ -117,7 +129,7 @@ const designSkills = [
   "Typography & Layout",
 ];
 
-const toolSkills = [
+const DEFAULT_TOOL_SKILLS = [
   "Adobe Photoshop",
   "Adobe Illustrator",
   "Adobe After Effects",
@@ -129,7 +141,7 @@ const toolSkills = [
   "Lightroom",
 ];
 
-const projects: Project[] = [
+const DEFAULT_PROJECTS: Project[] = [
   {
     title: "Music Broadcast",
     description:
@@ -263,6 +275,25 @@ const educations: Education[] = [
     year: "2014",
   },
 ];
+
+// ===== PORTFOLIO DATA CONTEXT =====
+interface PortfolioData {
+  experiences: Experience[];
+  designSkills: string[];
+  toolSkills: string[];
+  projects: Project[];
+}
+
+const PortfolioDataContext = createContext<PortfolioData>({
+  experiences: DEFAULT_EXPERIENCES,
+  designSkills: DEFAULT_DESIGN_SKILLS,
+  toolSkills: DEFAULT_TOOL_SKILLS,
+  projects: DEFAULT_PROJECTS,
+});
+
+function usePortfolioData() {
+  return useContext(PortfolioDataContext);
+}
 
 const navItems = [
   { label: "Home", href: "#home" },
@@ -1205,6 +1236,7 @@ function AboutSection() {
 
 // ===== EXPERIENCE =====
 function ExperienceSection() {
+  const { experiences } = usePortfolioData();
   return (
     <section
       id="experience"
@@ -1287,6 +1319,7 @@ function ExperienceSection() {
 
 // ===== SKILLS =====
 function SkillsSection() {
+  const { designSkills, toolSkills } = usePortfolioData();
   return (
     <section id="skills" className="py-24" data-ocid="skills.section">
       <div style={{ maxWidth: "1200px" }} className="mx-auto px-6">
@@ -1347,6 +1380,7 @@ function SkillsSection() {
 
 // ===== PROJECTS =====
 function ProjectsSection() {
+  const { projects } = usePortfolioData();
   return (
     <section
       id="projects"
@@ -2186,20 +2220,106 @@ export default function App() {
 
 function Portfolio() {
   useScrollReveal();
+  const { actor, isFetching } = useActor();
+  const fullActor = actor as unknown as
+    | import("./backend.d").backendInterface
+    | null;
+
+  const [portfolioData, setPortfolioData] = useState<PortfolioData>({
+    experiences: DEFAULT_EXPERIENCES,
+    designSkills: DEFAULT_DESIGN_SKILLS,
+    toolSkills: DEFAULT_TOOL_SKILLS,
+    projects: DEFAULT_PROJECTS,
+  });
+
+  useEffect(() => {
+    if (!fullActor || isFetching) return;
+    let cancelled = false;
+    async function loadDynamicData() {
+      try {
+        const [backendExps, backendSkills, backendProjs] = await Promise.all([
+          (
+            fullActor as import("./backend.d").backendInterface
+          ).getExperiences(),
+          (fullActor as import("./backend.d").backendInterface).getSkills(),
+          (fullActor as import("./backend.d").backendInterface).getProjects(),
+        ]);
+        if (cancelled) return;
+
+        const mapped: Partial<PortfolioData> = {};
+
+        if (backendExps.length > 0) {
+          mapped.experiences = backendExps
+            .slice()
+            .sort(
+              (a: BackendExperience, b: BackendExperience) =>
+                Number(a.sortOrder) - Number(b.sortOrder),
+            )
+            .map((e: BackendExperience) => ({
+              role: e.title,
+              company: e.company,
+              period: e.period,
+              description: e.description,
+            }));
+        }
+
+        if (backendSkills.length > 0) {
+          const designCat = backendSkills.find((s: SkillCategory) =>
+            s.category.toLowerCase().includes("design"),
+          );
+          const toolCat = backendSkills.find((s: SkillCategory) =>
+            s.category.toLowerCase().includes("tool"),
+          );
+          if (designCat) mapped.designSkills = designCat.items;
+          if (toolCat) mapped.toolSkills = toolCat.items;
+        }
+
+        if (backendProjs.length > 0) {
+          mapped.projects = backendProjs
+            .slice()
+            .sort(
+              (a: BackendProject, b: BackendProject) =>
+                Number(a.sortOrder) - Number(b.sortOrder),
+            )
+            .map((p: BackendProject) => ({
+              title: p.title,
+              link: p.url,
+              thumbnail: p.imageUrl || "",
+              description: "",
+              tags: [],
+              accentColor: "#7c3aed",
+            }));
+        }
+
+        if (Object.keys(mapped).length > 0) {
+          setPortfolioData((prev) => ({ ...prev, ...mapped }));
+        }
+      } catch {
+        // silently fall back to defaults
+      }
+    }
+    loadDynamicData();
+    return () => {
+      cancelled = true;
+    };
+  }, [fullActor, isFetching]);
+
   return (
-    <div style={{ background: "var(--color-bg)", minHeight: "100vh" }}>
-      <Header />
-      <main>
-        <HeroSection />
-        <AboutSection />
-        <ExperienceSection />
-        <SkillsSection />
-        <ProjectsSection />
-        <EducationSection />
-        <ReviewsSection />
-        <ContactSection />
-      </main>
-      <Footer />
-    </div>
+    <PortfolioDataContext.Provider value={portfolioData}>
+      <div style={{ background: "var(--color-bg)", minHeight: "100vh" }}>
+        <Header />
+        <main>
+          <HeroSection />
+          <AboutSection />
+          <ExperienceSection />
+          <SkillsSection />
+          <ProjectsSection />
+          <EducationSection />
+          <ReviewsSection />
+          <ContactSection />
+        </main>
+        <Footer />
+      </div>
+    </PortfolioDataContext.Provider>
   );
 }

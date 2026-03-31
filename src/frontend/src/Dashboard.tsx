@@ -12,18 +12,32 @@ import {
   TableRow,
 } from "@/components/ui/table";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { Textarea } from "@/components/ui/textarea";
 import {
   ArrowLeft,
+  Briefcase,
+  Edit2,
   Eye,
+  FolderOpen,
   Loader2,
   Lock,
   LogOut,
   MessageSquare,
+  Plus,
   Star,
   Trash2,
+  Wrench,
+  X,
 } from "lucide-react";
 import { useCallback, useEffect, useState } from "react";
-import type { backendInterface as FullBackend, Review } from "./backend.d";
+import type {
+  Experience as BackendExperience,
+  Project as BackendProject,
+  backendInterface as FullBackend,
+  Review,
+  SkillCategory,
+  VisitRecord,
+} from "./backend.d";
 import { useActor } from "./hooks/useActor";
 
 export default function Dashboard() {
@@ -41,7 +55,7 @@ export default function Dashboard() {
 
   // Visit stats state
   const [totalVisits, setTotalVisits] = useState<bigint>(0n);
-  const [dailyVisits, setDailyVisits] = useState<[string, bigint][]>([]);
+  const [dailyVisits, setDailyVisits] = useState<VisitRecord[]>([]);
   const [statsLoading, setStatsLoading] = useState(false);
 
   // Change PIN state
@@ -51,6 +65,36 @@ export default function Dashboard() {
   const [pinChangeMsg, setPinChangeMsg] = useState("");
   const [pinChangeSuccess, setPinChangeSuccess] = useState(false);
   const [pinChanging, setPinChanging] = useState(false);
+
+  // Experience state
+  const [experiences, setExperiences] = useState<BackendExperience[]>([]);
+  const [expLoading, setExpLoading] = useState(false);
+  const [expShowAdd, setExpShowAdd] = useState(false);
+  const [expEditId, setExpEditId] = useState<bigint | null>(null);
+  const [expTitle, setExpTitle] = useState("");
+  const [expCompany, setExpCompany] = useState("");
+  const [expPeriod, setExpPeriod] = useState("");
+  const [expDesc, setExpDesc] = useState("");
+  const [expSaving, setExpSaving] = useState(false);
+
+  // Skills state
+  const [skills, setSkills] = useState<SkillCategory[]>([]);
+  const [skillsLoading, setSkillsLoading] = useState(false);
+  const [skillShowAdd, setSkillShowAdd] = useState(false);
+  const [skillCategory, setSkillCategory] = useState("");
+  const [skillItems, setSkillItems] = useState("");
+  const [skillSaving, setSkillSaving] = useState(false);
+
+  // Projects state
+  const [projects, setProjects] = useState<BackendProject[]>([]);
+  const [projLoading, setProjLoading] = useState(false);
+  const [projShowAdd, setProjShowAdd] = useState(false);
+  const [projEditId, setProjEditId] = useState<bigint | null>(null);
+  const [projTitle, setProjTitle] = useState("");
+  const [projUrl, setProjUrl] = useState("");
+  const [projImageUrl, setProjImageUrl] = useState("");
+  const [projSortOrder, setProjSortOrder] = useState("");
+  const [projSaving, setProjSaving] = useState(false);
 
   const loadReviews = useCallback(async () => {
     if (!fullActor) return;
@@ -73,10 +117,43 @@ export default function Dashboard() {
         fullActor!.getDailyVisits(),
       ]);
       setTotalVisits(total);
-      const sorted = [...daily].sort((a, b) => b[0].localeCompare(a[0]));
+      const sorted = [...daily].sort((a, b) => b.date.localeCompare(a.date));
       setDailyVisits(sorted);
     } finally {
       setStatsLoading(false);
+    }
+  }, [fullActor]);
+
+  const loadExperiences = useCallback(async () => {
+    if (!fullActor) return;
+    setExpLoading(true);
+    try {
+      const data = await fullActor!.getExperiences();
+      setExperiences(data);
+    } finally {
+      setExpLoading(false);
+    }
+  }, [fullActor]);
+
+  const loadSkills = useCallback(async () => {
+    if (!fullActor) return;
+    setSkillsLoading(true);
+    try {
+      const data = await fullActor!.getSkills();
+      setSkills(data);
+    } finally {
+      setSkillsLoading(false);
+    }
+  }, [fullActor]);
+
+  const loadProjects = useCallback(async () => {
+    if (!fullActor) return;
+    setProjLoading(true);
+    try {
+      const data = await fullActor!.getProjects();
+      setProjects(data);
+    } finally {
+      setProjLoading(false);
     }
   }, [fullActor]);
 
@@ -84,8 +161,19 @@ export default function Dashboard() {
     if (isLoggedIn && fullActor) {
       loadReviews();
       loadStats();
+      loadExperiences();
+      loadSkills();
+      loadProjects();
     }
-  }, [isLoggedIn, fullActor, loadReviews, loadStats]);
+  }, [
+    isLoggedIn,
+    fullActor,
+    loadReviews,
+    loadStats,
+    loadExperiences,
+    loadSkills,
+    loadProjects,
+  ]);
 
   async function handleLogin() {
     if (!fullActor) return;
@@ -154,6 +242,9 @@ export default function Dashboard() {
     setReviews([]);
     setTotalVisits(0n);
     setDailyVisits([]);
+    setExperiences([]);
+    setSkills([]);
+    setProjects([]);
   }
 
   function renderStars(rating: bigint) {
@@ -170,6 +261,151 @@ export default function Dashboard() {
         ))}
       </div>
     );
+  }
+
+  // Experience handlers
+  function startEditExp(exp: BackendExperience) {
+    setExpEditId(exp.id);
+    setExpTitle(exp.title);
+    setExpCompany(exp.company);
+    setExpPeriod(exp.period);
+    setExpDesc(exp.description);
+    setExpShowAdd(false);
+  }
+
+  function cancelExpForm() {
+    setExpShowAdd(false);
+    setExpEditId(null);
+    setExpTitle("");
+    setExpCompany("");
+    setExpPeriod("");
+    setExpDesc("");
+  }
+
+  async function handleSaveExp() {
+    if (!fullActor || !expTitle || !expCompany) return;
+    setExpSaving(true);
+    try {
+      if (expEditId !== null) {
+        await fullActor!.updateExperience(
+          currentPin,
+          expEditId,
+          expTitle,
+          expCompany,
+          expPeriod,
+          expDesc,
+          BigInt(experiences.length),
+        );
+      } else {
+        await fullActor!.addExperience(
+          currentPin,
+          expTitle,
+          expCompany,
+          expPeriod,
+          expDesc,
+          BigInt(experiences.length + 1),
+        );
+      }
+      cancelExpForm();
+      await loadExperiences();
+    } finally {
+      setExpSaving(false);
+    }
+  }
+
+  async function handleDeleteExp(id: bigint) {
+    if (!fullActor) return;
+    await fullActor!.deleteExperience(currentPin, id);
+    await loadExperiences();
+  }
+
+  // Skills handlers
+  function cancelSkillForm() {
+    setSkillShowAdd(false);
+    setSkillCategory("");
+    setSkillItems("");
+  }
+
+  async function handleSaveSkill() {
+    if (!fullActor || !skillCategory) return;
+    setSkillSaving(true);
+    try {
+      const items = skillItems
+        .split(/[,\n]/)
+        .map((s) => s.trim())
+        .filter(Boolean);
+      await fullActor!.addSkillCategory(
+        currentPin,
+        skillCategory,
+        items,
+        BigInt(skills.length + 1),
+      );
+      cancelSkillForm();
+      await loadSkills();
+    } finally {
+      setSkillSaving(false);
+    }
+  }
+
+  async function handleDeleteSkill(id: bigint) {
+    if (!fullActor) return;
+    await fullActor!.deleteSkillCategory(currentPin, id);
+    await loadSkills();
+  }
+
+  // Projects handlers
+  function startEditProj(p: BackendProject) {
+    setProjEditId(p.id);
+    setProjTitle(p.title);
+    setProjUrl(p.url);
+    setProjImageUrl(p.imageUrl);
+    setProjSortOrder(String(p.sortOrder));
+    setProjShowAdd(false);
+  }
+
+  function cancelProjForm() {
+    setProjShowAdd(false);
+    setProjEditId(null);
+    setProjTitle("");
+    setProjUrl("");
+    setProjImageUrl("");
+    setProjSortOrder("");
+  }
+
+  async function handleSaveProj() {
+    if (!fullActor || !projTitle || !projUrl) return;
+    setProjSaving(true);
+    try {
+      const sortOrder = BigInt(projSortOrder || projects.length + 1);
+      if (projEditId !== null) {
+        await fullActor!.updateProject(
+          currentPin,
+          projEditId,
+          projTitle,
+          projUrl,
+          projImageUrl,
+          sortOrder,
+        );
+      } else {
+        await fullActor!.addProject(
+          currentPin,
+          projTitle,
+          projUrl,
+          projImageUrl,
+          sortOrder,
+        );
+      }
+      cancelProjForm();
+      await loadProjects();
+    } finally {
+      setProjSaving(false);
+    }
+  }
+
+  async function handleDeleteProj(id: bigint) {
+    if (!fullActor) return;
+    await fullActor!.deleteProject(currentPin, id);
+    await loadProjects();
   }
 
   if (!isLoggedIn) {
@@ -249,6 +485,10 @@ export default function Dashboard() {
     );
   }
 
+  const inputCls =
+    "bg-zinc-800 border-zinc-700 text-white placeholder:text-zinc-500 focus-visible:ring-violet-500";
+  const labelCls = "text-zinc-300 text-sm";
+
   return (
     <div className="min-h-screen bg-[#0a0a0a] text-white">
       {/* Header */}
@@ -278,7 +518,7 @@ export default function Dashboard() {
 
       <main className="max-w-5xl mx-auto p-6">
         <Tabs defaultValue="reviews">
-          <TabsList className="bg-zinc-900 border border-zinc-800 mb-6">
+          <TabsList className="bg-zinc-900 border border-zinc-800 mb-6 flex-wrap h-auto gap-1 p-1">
             <TabsTrigger
               value="reviews"
               className="data-[state=active]:bg-violet-600 data-[state=active]:text-white text-zinc-400"
@@ -294,6 +534,30 @@ export default function Dashboard() {
             >
               <Eye className="w-4 h-4 mr-2" />
               Visit Stats
+            </TabsTrigger>
+            <TabsTrigger
+              value="experience"
+              className="data-[state=active]:bg-violet-600 data-[state=active]:text-white text-zinc-400"
+              data-ocid="dashboard.tab"
+            >
+              <Briefcase className="w-4 h-4 mr-2" />
+              Experience
+            </TabsTrigger>
+            <TabsTrigger
+              value="skills"
+              className="data-[state=active]:bg-violet-600 data-[state=active]:text-white text-zinc-400"
+              data-ocid="dashboard.tab"
+            >
+              <Wrench className="w-4 h-4 mr-2" />
+              Skills
+            </TabsTrigger>
+            <TabsTrigger
+              value="projects"
+              className="data-[state=active]:bg-violet-600 data-[state=active]:text-white text-zinc-400"
+              data-ocid="dashboard.tab"
+            >
+              <FolderOpen className="w-4 h-4 mr-2" />
+              Projects
             </TabsTrigger>
             <TabsTrigger
               value="pin"
@@ -459,17 +723,17 @@ export default function Dashboard() {
                       </TableRow>
                     </TableHeader>
                     <TableBody>
-                      {dailyVisits.map(([date, count], i) => (
+                      {dailyVisits.map((r, i) => (
                         <TableRow
-                          key={date}
+                          key={r.date}
                           className="border-zinc-800 hover:bg-zinc-800/50"
                           data-ocid={`stats.row.${i + 1}`}
                         >
                           <TableCell className="text-zinc-300">
-                            {date}
+                            {r.date}
                           </TableCell>
                           <TableCell className="text-right text-violet-400 font-medium">
-                            {String(count)}
+                            {String(r.count)}
                           </TableCell>
                         </TableRow>
                       ))}
@@ -484,6 +748,562 @@ export default function Dashboard() {
                 data-ocid="stats.empty_state"
               >
                 No visit data yet.
+              </div>
+            )}
+          </TabsContent>
+
+          {/* Experience Tab */}
+          <TabsContent value="experience">
+            <div className="flex items-center justify-between mb-4">
+              <h2 className="text-lg font-semibold">
+                Work Experience
+                <Badge className="ml-2 bg-violet-600/20 text-violet-400 border-violet-600/30">
+                  {experiences.length}
+                </Badge>
+              </h2>
+              <div className="flex gap-2">
+                <Button
+                  variant="outline"
+                  size="sm"
+                  onClick={loadExperiences}
+                  disabled={expLoading}
+                  className="border-zinc-700 text-zinc-300 hover:bg-zinc-800 hover:text-white"
+                  data-ocid="experience.secondary_button"
+                >
+                  {expLoading ? (
+                    <Loader2 className="w-3.5 h-3.5 animate-spin" />
+                  ) : (
+                    "Refresh"
+                  )}
+                </Button>
+                {!expShowAdd && expEditId === null && (
+                  <Button
+                    size="sm"
+                    onClick={() => setExpShowAdd(true)}
+                    className="bg-violet-600 hover:bg-violet-700 text-white gap-1"
+                    data-ocid="experience.open_modal_button"
+                  >
+                    <Plus className="w-3.5 h-3.5" />
+                    Add Experience
+                  </Button>
+                )}
+              </div>
+            </div>
+
+            {/* Add/Edit Form */}
+            {(expShowAdd || expEditId !== null) && (
+              <Card
+                className="bg-zinc-900 border-zinc-700 mb-4"
+                data-ocid="experience.panel"
+              >
+                <CardHeader className="pb-3">
+                  <CardTitle className="text-sm text-white flex items-center justify-between">
+                    {expEditId !== null ? "Edit Experience" : "Add Experience"}
+                    <button
+                      type="button"
+                      onClick={cancelExpForm}
+                      className="text-zinc-500 hover:text-white"
+                    >
+                      <X className="w-4 h-4" />
+                    </button>
+                  </CardTitle>
+                </CardHeader>
+                <CardContent className="space-y-3">
+                  <div className="grid sm:grid-cols-2 gap-3">
+                    <div className="space-y-1">
+                      <Label className={labelCls}>Title / Role *</Label>
+                      <Input
+                        value={expTitle}
+                        onChange={(e) => setExpTitle(e.target.value)}
+                        placeholder="Visual Designer"
+                        className={inputCls}
+                        data-ocid="experience.input"
+                      />
+                    </div>
+                    <div className="space-y-1">
+                      <Label className={labelCls}>Company *</Label>
+                      <Input
+                        value={expCompany}
+                        onChange={(e) => setExpCompany(e.target.value)}
+                        placeholder="Company Name"
+                        className={inputCls}
+                        data-ocid="experience.input"
+                      />
+                    </div>
+                  </div>
+                  <div className="space-y-1">
+                    <Label className={labelCls}>Period</Label>
+                    <Input
+                      value={expPeriod}
+                      onChange={(e) => setExpPeriod(e.target.value)}
+                      placeholder="Jan 2023 – Present"
+                      className={inputCls}
+                      data-ocid="experience.input"
+                    />
+                  </div>
+                  <div className="space-y-1">
+                    <Label className={labelCls}>Description</Label>
+                    <Textarea
+                      value={expDesc}
+                      onChange={(e) => setExpDesc(e.target.value)}
+                      placeholder="Brief description of responsibilities..."
+                      rows={3}
+                      className={`${inputCls} resize-none`}
+                      data-ocid="experience.textarea"
+                    />
+                  </div>
+                  <div className="flex gap-2 justify-end">
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      onClick={cancelExpForm}
+                      className="border-zinc-700 text-zinc-300 hover:bg-zinc-800"
+                      data-ocid="experience.cancel_button"
+                    >
+                      Cancel
+                    </Button>
+                    <Button
+                      size="sm"
+                      onClick={handleSaveExp}
+                      disabled={expSaving || !expTitle || !expCompany}
+                      className="bg-violet-600 hover:bg-violet-700 text-white"
+                      data-ocid="experience.save_button"
+                    >
+                      {expSaving ? (
+                        <Loader2 className="w-3.5 h-3.5 animate-spin mr-1" />
+                      ) : null}
+                      {expEditId !== null ? "Update" : "Save"}
+                    </Button>
+                  </div>
+                </CardContent>
+              </Card>
+            )}
+
+            {expLoading ? (
+              <div
+                className="flex items-center justify-center py-12 text-zinc-500"
+                data-ocid="experience.loading_state"
+              >
+                <Loader2 className="w-5 h-5 animate-spin mr-2" /> Loading...
+              </div>
+            ) : experiences.length === 0 ? (
+              <div
+                className="text-center py-12 text-zinc-500"
+                data-ocid="experience.empty_state"
+              >
+                No experiences saved yet. Add one to override the default
+                portfolio content.
+              </div>
+            ) : (
+              <div className="grid gap-3">
+                {experiences.map((exp, i) => (
+                  <Card
+                    key={String(exp.id)}
+                    className="bg-zinc-900 border-zinc-800"
+                    data-ocid={`experience.item.${i + 1}`}
+                  >
+                    <CardContent className="p-4">
+                      <div className="flex items-start justify-between gap-4">
+                        <div className="flex-1 min-w-0">
+                          <div className="flex items-center gap-2 flex-wrap mb-1">
+                            <span className="font-medium text-white">
+                              {exp.title}
+                            </span>
+                            <Badge
+                              variant="outline"
+                              className="text-xs border-zinc-700 text-zinc-400"
+                            >
+                              {exp.company}
+                            </Badge>
+                            {exp.period && (
+                              <span className="text-xs text-zinc-500">
+                                {exp.period}
+                              </span>
+                            )}
+                          </div>
+                          {exp.description && (
+                            <p className="text-zinc-400 text-sm mt-1 leading-relaxed">
+                              {exp.description}
+                            </p>
+                          )}
+                        </div>
+                        <div className="flex gap-1 shrink-0">
+                          <Button
+                            variant="ghost"
+                            size="icon"
+                            onClick={() => startEditExp(exp)}
+                            className="text-zinc-400 hover:text-white hover:bg-zinc-800"
+                            data-ocid={`experience.edit_button.${i + 1}`}
+                          >
+                            <Edit2 className="w-3.5 h-3.5" />
+                          </Button>
+                          <Button
+                            variant="ghost"
+                            size="icon"
+                            onClick={() => handleDeleteExp(exp.id)}
+                            className="text-red-500 hover:text-red-400 hover:bg-red-500/10"
+                            data-ocid={`experience.delete_button.${i + 1}`}
+                          >
+                            <Trash2 className="w-3.5 h-3.5" />
+                          </Button>
+                        </div>
+                      </div>
+                    </CardContent>
+                  </Card>
+                ))}
+              </div>
+            )}
+          </TabsContent>
+
+          {/* Skills Tab */}
+          <TabsContent value="skills">
+            <div className="flex items-center justify-between mb-4">
+              <h2 className="text-lg font-semibold">
+                Skill Categories
+                <Badge className="ml-2 bg-violet-600/20 text-violet-400 border-violet-600/30">
+                  {skills.length}
+                </Badge>
+              </h2>
+              <div className="flex gap-2">
+                <Button
+                  variant="outline"
+                  size="sm"
+                  onClick={loadSkills}
+                  disabled={skillsLoading}
+                  className="border-zinc-700 text-zinc-300 hover:bg-zinc-800 hover:text-white"
+                  data-ocid="skills.secondary_button"
+                >
+                  {skillsLoading ? (
+                    <Loader2 className="w-3.5 h-3.5 animate-spin" />
+                  ) : (
+                    "Refresh"
+                  )}
+                </Button>
+                {!skillShowAdd && (
+                  <Button
+                    size="sm"
+                    onClick={() => setSkillShowAdd(true)}
+                    className="bg-violet-600 hover:bg-violet-700 text-white gap-1"
+                    data-ocid="skills.open_modal_button"
+                  >
+                    <Plus className="w-3.5 h-3.5" />
+                    Add Category
+                  </Button>
+                )}
+              </div>
+            </div>
+
+            {skillShowAdd && (
+              <Card
+                className="bg-zinc-900 border-zinc-700 mb-4"
+                data-ocid="skills.panel"
+              >
+                <CardHeader className="pb-3">
+                  <CardTitle className="text-sm text-white flex items-center justify-between">
+                    Add Skill Category
+                    <button
+                      type="button"
+                      onClick={cancelSkillForm}
+                      className="text-zinc-500 hover:text-white"
+                    >
+                      <X className="w-4 h-4" />
+                    </button>
+                  </CardTitle>
+                </CardHeader>
+                <CardContent className="space-y-3">
+                  <div className="space-y-1">
+                    <Label className={labelCls}>Category Name *</Label>
+                    <Input
+                      value={skillCategory}
+                      onChange={(e) => setSkillCategory(e.target.value)}
+                      placeholder="Design Skills"
+                      className={inputCls}
+                      data-ocid="skills.input"
+                    />
+                  </div>
+                  <div className="space-y-1">
+                    <Label className={labelCls}>
+                      Items (one per line or comma-separated)
+                    </Label>
+                    <Textarea
+                      value={skillItems}
+                      onChange={(e) => setSkillItems(e.target.value)}
+                      placeholder="Figma\nAdobe Photoshop\nIllustrator"
+                      rows={4}
+                      className={`${inputCls} resize-none`}
+                      data-ocid="skills.textarea"
+                    />
+                  </div>
+                  <div className="flex gap-2 justify-end">
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      onClick={cancelSkillForm}
+                      className="border-zinc-700 text-zinc-300 hover:bg-zinc-800"
+                      data-ocid="skills.cancel_button"
+                    >
+                      Cancel
+                    </Button>
+                    <Button
+                      size="sm"
+                      onClick={handleSaveSkill}
+                      disabled={skillSaving || !skillCategory}
+                      className="bg-violet-600 hover:bg-violet-700 text-white"
+                      data-ocid="skills.save_button"
+                    >
+                      {skillSaving ? (
+                        <Loader2 className="w-3.5 h-3.5 animate-spin mr-1" />
+                      ) : null}
+                      Save
+                    </Button>
+                  </div>
+                </CardContent>
+              </Card>
+            )}
+
+            {skillsLoading ? (
+              <div
+                className="flex items-center justify-center py-12 text-zinc-500"
+                data-ocid="skills.loading_state"
+              >
+                <Loader2 className="w-5 h-5 animate-spin mr-2" /> Loading...
+              </div>
+            ) : skills.length === 0 ? (
+              <div
+                className="text-center py-12 text-zinc-500"
+                data-ocid="skills.empty_state"
+              >
+                No skills saved yet. Add categories to override defaults.
+              </div>
+            ) : (
+              <div className="grid gap-3">
+                {skills.map((skill, i) => (
+                  <Card
+                    key={String(skill.id)}
+                    className="bg-zinc-900 border-zinc-800"
+                    data-ocid={`skills.item.${i + 1}`}
+                  >
+                    <CardContent className="p-4">
+                      <div className="flex items-start justify-between gap-4">
+                        <div className="flex-1 min-w-0">
+                          <p className="font-medium text-white mb-2">
+                            {skill.category}
+                          </p>
+                          <p className="text-zinc-400 text-sm">
+                            {skill.items.join(", ")}
+                          </p>
+                        </div>
+                        <Button
+                          variant="ghost"
+                          size="icon"
+                          onClick={() => handleDeleteSkill(skill.id)}
+                          className="text-red-500 hover:text-red-400 hover:bg-red-500/10 shrink-0"
+                          data-ocid={`skills.delete_button.${i + 1}`}
+                        >
+                          <Trash2 className="w-3.5 h-3.5" />
+                        </Button>
+                      </div>
+                    </CardContent>
+                  </Card>
+                ))}
+              </div>
+            )}
+          </TabsContent>
+
+          {/* Projects Tab */}
+          <TabsContent value="projects">
+            <div className="flex items-center justify-between mb-4">
+              <h2 className="text-lg font-semibold">
+                Portfolio Projects
+                <Badge className="ml-2 bg-violet-600/20 text-violet-400 border-violet-600/30">
+                  {projects.length}
+                </Badge>
+              </h2>
+              <div className="flex gap-2">
+                <Button
+                  variant="outline"
+                  size="sm"
+                  onClick={loadProjects}
+                  disabled={projLoading}
+                  className="border-zinc-700 text-zinc-300 hover:bg-zinc-800 hover:text-white"
+                  data-ocid="projects.secondary_button"
+                >
+                  {projLoading ? (
+                    <Loader2 className="w-3.5 h-3.5 animate-spin" />
+                  ) : (
+                    "Refresh"
+                  )}
+                </Button>
+                {!projShowAdd && projEditId === null && (
+                  <Button
+                    size="sm"
+                    onClick={() => setProjShowAdd(true)}
+                    className="bg-violet-600 hover:bg-violet-700 text-white gap-1"
+                    data-ocid="projects.open_modal_button"
+                  >
+                    <Plus className="w-3.5 h-3.5" />
+                    Add Project
+                  </Button>
+                )}
+              </div>
+            </div>
+
+            {(projShowAdd || projEditId !== null) && (
+              <Card
+                className="bg-zinc-900 border-zinc-700 mb-4"
+                data-ocid="projects.panel"
+              >
+                <CardHeader className="pb-3">
+                  <CardTitle className="text-sm text-white flex items-center justify-between">
+                    {projEditId !== null ? "Edit Project" : "Add Project"}
+                    <button
+                      type="button"
+                      onClick={cancelProjForm}
+                      className="text-zinc-500 hover:text-white"
+                    >
+                      <X className="w-4 h-4" />
+                    </button>
+                  </CardTitle>
+                </CardHeader>
+                <CardContent className="space-y-3">
+                  <div className="grid sm:grid-cols-2 gap-3">
+                    <div className="space-y-1">
+                      <Label className={labelCls}>Title *</Label>
+                      <Input
+                        value={projTitle}
+                        onChange={(e) => setProjTitle(e.target.value)}
+                        placeholder="Music Broadcast"
+                        className={inputCls}
+                        data-ocid="projects.input"
+                      />
+                    </div>
+                    <div className="space-y-1">
+                      <Label className={labelCls}>Sort Order</Label>
+                      <Input
+                        value={projSortOrder}
+                        onChange={(e) => setProjSortOrder(e.target.value)}
+                        placeholder="1"
+                        type="number"
+                        className={inputCls}
+                        data-ocid="projects.input"
+                      />
+                    </div>
+                  </div>
+                  <div className="space-y-1">
+                    <Label className={labelCls}>Behance / Project URL *</Label>
+                    <Input
+                      value={projUrl}
+                      onChange={(e) => setProjUrl(e.target.value)}
+                      placeholder="https://www.behance.net/gallery/..."
+                      className={inputCls}
+                      data-ocid="projects.input"
+                    />
+                  </div>
+                  <div className="space-y-1">
+                    <Label className={labelCls}>
+                      Thumbnail Image URL (optional)
+                    </Label>
+                    <Input
+                      value={projImageUrl}
+                      onChange={(e) => setProjImageUrl(e.target.value)}
+                      placeholder="https://..."
+                      className={inputCls}
+                      data-ocid="projects.input"
+                    />
+                  </div>
+                  <div className="flex gap-2 justify-end">
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      onClick={cancelProjForm}
+                      className="border-zinc-700 text-zinc-300 hover:bg-zinc-800"
+                      data-ocid="projects.cancel_button"
+                    >
+                      Cancel
+                    </Button>
+                    <Button
+                      size="sm"
+                      onClick={handleSaveProj}
+                      disabled={projSaving || !projTitle || !projUrl}
+                      className="bg-violet-600 hover:bg-violet-700 text-white"
+                      data-ocid="projects.save_button"
+                    >
+                      {projSaving ? (
+                        <Loader2 className="w-3.5 h-3.5 animate-spin mr-1" />
+                      ) : null}
+                      {projEditId !== null ? "Update" : "Save"}
+                    </Button>
+                  </div>
+                </CardContent>
+              </Card>
+            )}
+
+            {projLoading ? (
+              <div
+                className="flex items-center justify-center py-12 text-zinc-500"
+                data-ocid="projects.loading_state"
+              >
+                <Loader2 className="w-5 h-5 animate-spin mr-2" /> Loading...
+              </div>
+            ) : projects.length === 0 ? (
+              <div
+                className="text-center py-12 text-zinc-500"
+                data-ocid="projects.empty_state"
+              >
+                No projects saved yet. Add projects to override defaults.
+              </div>
+            ) : (
+              <div className="grid gap-3">
+                {projects.map((p, i) => (
+                  <Card
+                    key={String(p.id)}
+                    className="bg-zinc-900 border-zinc-800"
+                    data-ocid={`projects.item.${i + 1}`}
+                  >
+                    <CardContent className="p-4">
+                      <div className="flex items-start justify-between gap-4">
+                        <div className="flex-1 min-w-0">
+                          <p className="font-medium text-white mb-1">
+                            {p.title}
+                          </p>
+                          <a
+                            href={p.url}
+                            target="_blank"
+                            rel="noopener noreferrer"
+                            className="text-xs text-violet-400 hover:underline truncate block"
+                          >
+                            {p.url}
+                          </a>
+                          {p.imageUrl && (
+                            <p className="text-zinc-500 text-xs mt-1 truncate">
+                              {p.imageUrl}
+                            </p>
+                          )}
+                        </div>
+                        <div className="flex gap-1 shrink-0">
+                          <Button
+                            variant="ghost"
+                            size="icon"
+                            onClick={() => startEditProj(p)}
+                            className="text-zinc-400 hover:text-white hover:bg-zinc-800"
+                            data-ocid={`projects.edit_button.${i + 1}`}
+                          >
+                            <Edit2 className="w-3.5 h-3.5" />
+                          </Button>
+                          <Button
+                            variant="ghost"
+                            size="icon"
+                            onClick={() => handleDeleteProj(p.id)}
+                            className="text-red-500 hover:text-red-400 hover:bg-red-500/10"
+                            data-ocid={`projects.delete_button.${i + 1}`}
+                          >
+                            <Trash2 className="w-3.5 h-3.5" />
+                          </Button>
+                        </div>
+                      </div>
+                    </CardContent>
+                  </Card>
+                ))}
               </div>
             )}
           </TabsContent>

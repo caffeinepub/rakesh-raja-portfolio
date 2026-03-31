@@ -10,6 +10,21 @@ import type { ActorMethod } from '@icp-sdk/core/agent';
 import type { IDL } from '@icp-sdk/core/candid';
 import type { Principal } from '@icp-sdk/core/principal';
 
+export interface Experience {
+  'id' : bigint,
+  'title' : string,
+  'period' : string,
+  'sortOrder' : bigint,
+  'description' : string,
+  'company' : string,
+}
+export interface Project {
+  'id' : bigint,
+  'url' : string,
+  'title' : string,
+  'sortOrder' : bigint,
+  'imageUrl' : string,
+}
 export interface Review {
   'id' : bigint,
   'name' : string,
@@ -19,18 +34,59 @@ export interface Review {
   'timestamp' : bigint,
   'rating' : bigint,
 }
+export interface SkillCategory {
+  'id' : bigint,
+  'sortOrder' : bigint,
+  'category' : string,
+  'items' : Array<string>,
+}
+export interface VisitRecord { 'date' : string, 'count' : bigint }
 export interface _SERVICE {
+  'addExperience' : ActorMethod<
+    [string, string, string, string, string, bigint],
+    bigint
+  >,
+  'addProject' : ActorMethod<[string, string, string, string, bigint], bigint>,
+  'addSkillCategory' : ActorMethod<
+    [string, string, Array<string>, bigint],
+    bigint
+  >,
+  'deleteExperience' : ActorMethod<[string, bigint], boolean>,
+  'deleteProject' : ActorMethod<[string, bigint], boolean>,
   'deleteReview' : ActorMethod<[string, bigint], boolean>,
-  'getDailyVisits' : ActorMethod<[], Array<[string, bigint]>>,
+  'deleteSkillCategory' : ActorMethod<[string, bigint], boolean>,
+  'getAllData' : ActorMethod<
+    [],
+    {
+      'reviews' : Array<Review>,
+      'projects' : Array<Project>,
+      'dailyVisits' : Array<VisitRecord>,
+      'totalVisits' : bigint,
+      'experiences' : Array<Experience>,
+      'skills' : Array<SkillCategory>,
+    }
+  >,
+  'getDailyVisits' : ActorMethod<[], Array<VisitRecord>>,
+  'getExperiences' : ActorMethod<[], Array<Experience>>,
+  'getProjects' : ActorMethod<[], Array<Project>>,
   'getReview' : ActorMethod<[bigint], Review>,
   'getReviewCount' : ActorMethod<[], bigint>,
   'getReviews' : ActorMethod<[], Array<Review>>,
+  'getSkills' : ActorMethod<[], Array<SkillCategory>>,
   'getTotalVisits' : ActorMethod<[], bigint>,
   'recordVisit' : ActorMethod<[string], undefined>,
   'setAdminPin' : ActorMethod<[string, string], boolean>,
   'submitReview' : ActorMethod<
     [string, string, string, string, bigint],
     bigint
+  >,
+  'updateExperience' : ActorMethod<
+    [string, bigint, string, string, string, string, bigint],
+    boolean
+  >,
+  'updateProject' : ActorMethod<
+    [string, bigint, string, string, string, bigint],
+    boolean
   >,
   'verifyAdmin' : ActorMethod<[string], boolean>,
 }

@@ -17,23 +17,86 @@ export const Review = IDL.Record({
   'timestamp' : IDL.Int,
   'rating' : IDL.Nat,
 });
+export const Project = IDL.Record({
+  'id' : IDL.Nat,
+  'url' : IDL.Text,
+  'title' : IDL.Text,
+  'sortOrder' : IDL.Nat,
+  'imageUrl' : IDL.Text,
+});
+export const VisitRecord = IDL.Record({ 'date' : IDL.Text, 'count' : IDL.Nat });
+export const Experience = IDL.Record({
+  'id' : IDL.Nat,
+  'title' : IDL.Text,
+  'period' : IDL.Text,
+  'sortOrder' : IDL.Nat,
+  'description' : IDL.Text,
+  'company' : IDL.Text,
+});
+export const SkillCategory = IDL.Record({
+  'id' : IDL.Nat,
+  'sortOrder' : IDL.Nat,
+  'category' : IDL.Text,
+  'items' : IDL.Vec(IDL.Text),
+});
 
 export const idlService = IDL.Service({
-  'deleteReview' : IDL.Func([IDL.Text, IDL.Nat], [IDL.Bool], []),
-  'getDailyVisits' : IDL.Func(
+  'addExperience' : IDL.Func(
+      [IDL.Text, IDL.Text, IDL.Text, IDL.Text, IDL.Text, IDL.Nat],
+      [IDL.Nat],
       [],
-      [IDL.Vec(IDL.Tuple(IDL.Text, IDL.Nat))],
+    ),
+  'addProject' : IDL.Func(
+      [IDL.Text, IDL.Text, IDL.Text, IDL.Text, IDL.Nat],
+      [IDL.Nat],
+      [],
+    ),
+  'addSkillCategory' : IDL.Func(
+      [IDL.Text, IDL.Text, IDL.Vec(IDL.Text), IDL.Nat],
+      [IDL.Nat],
+      [],
+    ),
+  'deleteExperience' : IDL.Func([IDL.Text, IDL.Nat], [IDL.Bool], []),
+  'deleteProject' : IDL.Func([IDL.Text, IDL.Nat], [IDL.Bool], []),
+  'deleteReview' : IDL.Func([IDL.Text, IDL.Nat], [IDL.Bool], []),
+  'deleteSkillCategory' : IDL.Func([IDL.Text, IDL.Nat], [IDL.Bool], []),
+  'getAllData' : IDL.Func(
+      [],
+      [
+        IDL.Record({
+          'reviews' : IDL.Vec(Review),
+          'projects' : IDL.Vec(Project),
+          'dailyVisits' : IDL.Vec(VisitRecord),
+          'totalVisits' : IDL.Nat,
+          'experiences' : IDL.Vec(Experience),
+          'skills' : IDL.Vec(SkillCategory),
+        }),
+      ],
       ['query'],
     ),
+  'getDailyVisits' : IDL.Func([], [IDL.Vec(VisitRecord)], ['query']),
+  'getExperiences' : IDL.Func([], [IDL.Vec(Experience)], ['query']),
+  'getProjects' : IDL.Func([], [IDL.Vec(Project)], ['query']),
   'getReview' : IDL.Func([IDL.Nat], [Review], ['query']),
   'getReviewCount' : IDL.Func([], [IDL.Nat], ['query']),
   'getReviews' : IDL.Func([], [IDL.Vec(Review)], ['query']),
+  'getSkills' : IDL.Func([], [IDL.Vec(SkillCategory)], ['query']),
   'getTotalVisits' : IDL.Func([], [IDL.Nat], ['query']),
   'recordVisit' : IDL.Func([IDL.Text], [], []),
   'setAdminPin' : IDL.Func([IDL.Text, IDL.Text], [IDL.Bool], []),
   'submitReview' : IDL.Func(
       [IDL.Text, IDL.Text, IDL.Text, IDL.Text, IDL.Nat],
       [IDL.Nat],
+      [],
+    ),
+  'updateExperience' : IDL.Func(
+      [IDL.Text, IDL.Nat, IDL.Text, IDL.Text, IDL.Text, IDL.Text, IDL.Nat],
+      [IDL.Bool],
+      [],
+    ),
+  'updateProject' : IDL.Func(
+      [IDL.Text, IDL.Nat, IDL.Text, IDL.Text, IDL.Text, IDL.Nat],
+      [IDL.Bool],
       [],
     ),
   'verifyAdmin' : IDL.Func([IDL.Text], [IDL.Bool], ['query']),
@@ -51,23 +114,86 @@ export const idlFactory = ({ IDL }) => {
     'timestamp' : IDL.Int,
     'rating' : IDL.Nat,
   });
+  const Project = IDL.Record({
+    'id' : IDL.Nat,
+    'url' : IDL.Text,
+    'title' : IDL.Text,
+    'sortOrder' : IDL.Nat,
+    'imageUrl' : IDL.Text,
+  });
+  const VisitRecord = IDL.Record({ 'date' : IDL.Text, 'count' : IDL.Nat });
+  const Experience = IDL.Record({
+    'id' : IDL.Nat,
+    'title' : IDL.Text,
+    'period' : IDL.Text,
+    'sortOrder' : IDL.Nat,
+    'description' : IDL.Text,
+    'company' : IDL.Text,
+  });
+  const SkillCategory = IDL.Record({
+    'id' : IDL.Nat,
+    'sortOrder' : IDL.Nat,
+    'category' : IDL.Text,
+    'items' : IDL.Vec(IDL.Text),
+  });
   
   return IDL.Service({
-    'deleteReview' : IDL.Func([IDL.Text, IDL.Nat], [IDL.Bool], []),
-    'getDailyVisits' : IDL.Func(
+    'addExperience' : IDL.Func(
+        [IDL.Text, IDL.Text, IDL.Text, IDL.Text, IDL.Text, IDL.Nat],
+        [IDL.Nat],
         [],
-        [IDL.Vec(IDL.Tuple(IDL.Text, IDL.Nat))],
+      ),
+    'addProject' : IDL.Func(
+        [IDL.Text, IDL.Text, IDL.Text, IDL.Text, IDL.Nat],
+        [IDL.Nat],
+        [],
+      ),
+    'addSkillCategory' : IDL.Func(
+        [IDL.Text, IDL.Text, IDL.Vec(IDL.Text), IDL.Nat],
+        [IDL.Nat],
+        [],
+      ),
+    'deleteExperience' : IDL.Func([IDL.Text, IDL.Nat], [IDL.Bool], []),
+    'deleteProject' : IDL.Func([IDL.Text, IDL.Nat], [IDL.Bool], []),
+    'deleteReview' : IDL.Func([IDL.Text, IDL.Nat], [IDL.Bool], []),
+    'deleteSkillCategory' : IDL.Func([IDL.Text, IDL.Nat], [IDL.Bool], []),
+    'getAllData' : IDL.Func(
+        [],
+        [
+          IDL.Record({
+            'reviews' : IDL.Vec(Review),
+            'projects' : IDL.Vec(Project),
+            'dailyVisits' : IDL.Vec(VisitRecord),
+            'totalVisits' : IDL.Nat,
+            'experiences' : IDL.Vec(Experience),
+            'skills' : IDL.Vec(SkillCategory),
+          }),
+        ],
         ['query'],
       ),
+    'getDailyVisits' : IDL.Func([], [IDL.Vec(VisitRecord)], ['query']),
+    'getExperiences' : IDL.Func([], [IDL.Vec(Experience)], ['query']),
+    'getProjects' : IDL.Func([], [IDL.Vec(Project)], ['query']),
     'getReview' : IDL.Func([IDL.Nat], [Review], ['query']),
     'getReviewCount' : IDL.Func([], [IDL.Nat], ['query']),
     'getReviews' : IDL.Func([], [IDL.Vec(Review)], ['query']),
+    'getSkills' : IDL.Func([], [IDL.Vec(SkillCategory)], ['query']),
     'getTotalVisits' : IDL.Func([], [IDL.Nat], ['query']),
     'recordVisit' : IDL.Func([IDL.Text], [], []),
     'setAdminPin' : IDL.Func([IDL.Text, IDL.Text], [IDL.Bool], []),
     'submitReview' : IDL.Func(
         [IDL.Text, IDL.Text, IDL.Text, IDL.Text, IDL.Nat],
         [IDL.Nat],
+        [],
+      ),
+    'updateExperience' : IDL.Func(
+        [IDL.Text, IDL.Nat, IDL.Text, IDL.Text, IDL.Text, IDL.Text, IDL.Nat],
+        [IDL.Bool],
+        [],
+      ),
+    'updateProject' : IDL.Func(
+        [IDL.Text, IDL.Nat, IDL.Text, IDL.Text, IDL.Text, IDL.Nat],
+        [IDL.Bool],
         [],
       ),
     'verifyAdmin' : IDL.Func([IDL.Text], [IDL.Bool], ['query']),

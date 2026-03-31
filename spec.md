@@ -1,19 +1,32 @@
 # Rakesh Raja Portfolio
 
 ## Current State
-The portfolio is fully built with a Motoko backend that includes review management, admin PIN authentication, visit tracking, and admin controls (verifyAdmin, setAdminPin, deleteReview, recordVisit, getTotalVisits, getDailyVisits, getReviewCount). However, the auto-generated frontend bindings (backend.did.js, backend.ts, backend.d.ts) are out of sync — they only expose 3 functions (getReview, getReviews, submitReview), causing the dashboard login to throw "Error verifying PIN" because verifyAdmin doesn't exist on the actor.
+- Admin dashboard at /dashboard with PIN auth (rakesh2025)
+- Reviews stored in Map.empty (volatile — lost on canister restart)
+- Admin can view/delete reviews, see visit stats, change PIN
+- Portfolio content (experience, skills, projects) is hardcoded in App.tsx
 
 ## Requested Changes (Diff)
 
 ### Add
-- Nothing new
+- Stable storage for reviews so they survive canister restarts/upgrades
+- Backend support for managing Experience entries (add/update/delete)
+- Backend support for managing Skills (add/delete)
+- Backend support for managing Project entries (add/update/delete)
+- Admin dashboard tabs: Experience, Skills, Projects with full CRUD UI
 
 ### Modify
-- Regenerate Motoko backend so all functions are included in the bindings
+- Backend main.mo: convert reviews map to stable storage using stable var arrays
+- Dashboard.tsx: add Experience, Skills, Projects tabs
+- App.tsx: load experience, skills, projects from backend if available (fallback to hardcoded defaults)
 
 ### Remove
-- Nothing
+- Nothing removed
 
 ## Implementation Plan
-1. Regenerate Motoko backend to include all functions: getReview, getReviews, submitReview, verifyAdmin, setAdminPin, deleteReview, recordVisit, getTotalVisits, getDailyVisits, getReviewCount
-2. No frontend changes needed — Dashboard.tsx already uses all these functions correctly
+1. Update main.mo to use stable var for reviews (stable var reviewsData: [(Nat, Review)])
+2. Add Experience, Skill, Project types and stable storage in backend
+3. Add CRUD functions for each content type
+4. Update backend.d.ts to match new APIs
+5. Update Dashboard.tsx with new management tabs
+6. Update App.tsx to optionally load dynamic content from backend
