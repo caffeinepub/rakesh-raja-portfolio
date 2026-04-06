@@ -25,6 +25,7 @@ import {
   Lock,
   LogOut,
   MessageSquare,
+  Pencil,
   Plus,
   Star,
   Trash2,
@@ -88,6 +89,10 @@ export default function Dashboard() {
   const [skillCategory, setSkillCategory] = useState("");
   const [skillItems, setSkillItems] = useState("");
   const [skillSaving, setSkillSaving] = useState(false);
+  const [skillEditId, setSkillEditId] = useState<bigint | null>(null);
+  const [skillEditCategory, setSkillEditCategory] = useState("");
+  const [skillEditItems, setSkillEditItems] = useState("");
+  const [skillEditSaving, setSkillEditSaving] = useState(false);
 
   // Projects state
   const [projects, setProjects] = useState<BackendProject[]>([]);
@@ -148,6 +153,17 @@ export default function Dashboard() {
   const [eduCollege, setEduCollege] = useState("");
   const [eduYear, setEduYear] = useState("");
   const [eduSaving, setEduSaving] = useState(false);
+
+  const notifyPortfolioUpdate = useCallback(() => {
+    try {
+      const bc = new BroadcastChannel("portfolio-sync");
+      bc.postMessage({ type: "portfolioDataUpdated" });
+      bc.close();
+    } catch {
+      // BroadcastChannel not supported, fallback to localStorage
+      localStorage.setItem("portfolioDataUpdated", String(Date.now()));
+    }
+  }, []);
 
   const loadReviews = useCallback(async () => {
     if (!fullActor) return;
@@ -420,6 +436,7 @@ export default function Dashboard() {
       }
       cancelEduForm();
       await loadEducations();
+      notifyPortfolioUpdate();
     } finally {
       setEduSaving(false);
     }
@@ -429,6 +446,7 @@ export default function Dashboard() {
     if (!fullActor) return;
     await fullActor!.deleteEducation(currentPin, id);
     await loadEducations();
+    notifyPortfolioUpdate();
   }
 
   async function handleSaveProfile() {
@@ -453,6 +471,7 @@ export default function Dashboard() {
       );
       if (ok) {
         setProfileMsg("Profile saved successfully!");
+        notifyPortfolioUpdate();
       } else {
         setProfileMsg("Failed to save profile. Check your PIN.");
       }
@@ -484,6 +503,7 @@ export default function Dashboard() {
       );
       if (ok) {
         setContactMsg("Contact details saved successfully!");
+        notifyPortfolioUpdate();
       } else {
         setContactMsg("Failed to save contact details. Check your PIN.");
       }
@@ -555,6 +575,7 @@ export default function Dashboard() {
       }
       cancelExpForm();
       await loadExperiences();
+      notifyPortfolioUpdate();
     } finally {
       setExpSaving(false);
     }
@@ -564,6 +585,7 @@ export default function Dashboard() {
     if (!fullActor) return;
     await fullActor!.deleteExperience(currentPin, id);
     await loadExperiences();
+    notifyPortfolioUpdate();
   }
 
   // Skills handlers
@@ -589,6 +611,7 @@ export default function Dashboard() {
       );
       cancelSkillForm();
       await loadSkills();
+      notifyPortfolioUpdate();
     } finally {
       setSkillSaving(false);
     }
@@ -598,6 +621,44 @@ export default function Dashboard() {
     if (!fullActor) return;
     await fullActor!.deleteSkillCategory(currentPin, id);
     await loadSkills();
+    notifyPortfolioUpdate();
+  }
+
+  function startEditSkill(skill: SkillCategory) {
+    setSkillEditId(skill.id);
+    setSkillEditCategory(skill.category);
+    setSkillEditItems(skill.items.join("\n"));
+  }
+
+  function cancelEditSkill() {
+    setSkillEditId(null);
+    setSkillEditCategory("");
+    setSkillEditItems("");
+  }
+
+  async function handleUpdateSkill(skill: SkillCategory) {
+    if (!fullActor || !skillEditCategory) return;
+    setSkillEditSaving(true);
+    try {
+      const items = skillEditItems
+        .split(/[,\n]/)
+        .map((s) => s.trim())
+        .filter(Boolean);
+      await (
+        fullActor as import("./backend.d").backendInterface
+      ).updateSkillCategory(
+        currentPin,
+        skill.id,
+        skillEditCategory,
+        items,
+        skill.sortOrder,
+      );
+      cancelEditSkill();
+      await loadSkills();
+      notifyPortfolioUpdate();
+    } finally {
+      setSkillEditSaving(false);
+    }
   }
 
   // Projects handlers
@@ -644,6 +705,7 @@ export default function Dashboard() {
       }
       cancelProjForm();
       await loadProjects();
+      notifyPortfolioUpdate();
     } finally {
       setProjSaving(false);
     }
@@ -653,6 +715,7 @@ export default function Dashboard() {
     if (!fullActor) return;
     await fullActor!.deleteProject(currentPin, id);
     await loadProjects();
+    notifyPortfolioUpdate();
   }
 
   if (!isLoggedIn) {
@@ -1355,25 +1418,88 @@ export default function Dashboard() {
                     data-ocid={`skills.item.${i + 1}`}
                   >
                     <CardContent className="p-4">
-                      <div className="flex items-start justify-between gap-4">
-                        <div className="flex-1 min-w-0">
-                          <p className="font-medium text-white mb-2">
-                            {skill.category}
-                          </p>
-                          <p className="text-zinc-400 text-sm">
-                            {skill.items.join(", ")}
-                          </p>
+                      {skillEditId === skill.id ? (
+                        <div className="space-y-3">
+                          <div className="space-y-1">
+                            <Label className={labelCls}>Category Name *</Label>
+                            <Input
+                              value={skillEditCategory}
+                              onChange={(e) =>
+                                setSkillEditCategory(e.target.value)
+                              }
+                              className={inputCls}
+                              data-ocid={`skills.edit_category.${i + 1}`}
+                            />
+                          </div>
+                          <div className="space-y-1">
+                            <Label className={labelCls}>
+                              Items (one per line or comma-separated)
+                            </Label>
+                            <Textarea
+                              value={skillEditItems}
+                              onChange={(e) =>
+                                setSkillEditItems(e.target.value)
+                              }
+                              rows={4}
+                              className={`${inputCls} resize-none`}
+                              data-ocid={`skills.edit_items.${i + 1}`}
+                            />
+                          </div>
+                          <div className="flex gap-2 justify-end">
+                            <Button
+                              variant="outline"
+                              size="sm"
+                              onClick={cancelEditSkill}
+                              className="border-zinc-700 text-zinc-300 hover:bg-zinc-800"
+                            >
+                              Cancel
+                            </Button>
+                            <Button
+                              size="sm"
+                              onClick={() => handleUpdateSkill(skill)}
+                              disabled={skillEditSaving || !skillEditCategory}
+                              className="bg-violet-600 hover:bg-violet-700 text-white"
+                              data-ocid={`skills.save_edit_button.${i + 1}`}
+                            >
+                              {skillEditSaving ? (
+                                <Loader2 className="w-3.5 h-3.5 animate-spin mr-1" />
+                              ) : null}
+                              Save
+                            </Button>
+                          </div>
                         </div>
-                        <Button
-                          variant="ghost"
-                          size="icon"
-                          onClick={() => handleDeleteSkill(skill.id)}
-                          className="text-red-500 hover:text-red-400 hover:bg-red-500/10 shrink-0"
-                          data-ocid={`skills.delete_button.${i + 1}`}
-                        >
-                          <Trash2 className="w-3.5 h-3.5" />
-                        </Button>
-                      </div>
+                      ) : (
+                        <div className="flex items-start justify-between gap-4">
+                          <div className="flex-1 min-w-0">
+                            <p className="font-medium text-white mb-2">
+                              {skill.category}
+                            </p>
+                            <p className="text-zinc-400 text-sm">
+                              {skill.items.join(", ")}
+                            </p>
+                          </div>
+                          <div className="flex gap-1 shrink-0">
+                            <Button
+                              variant="ghost"
+                              size="icon"
+                              onClick={() => startEditSkill(skill)}
+                              className="text-zinc-400 hover:text-white hover:bg-zinc-700"
+                              data-ocid={`skills.edit_button.${i + 1}`}
+                            >
+                              <Pencil className="w-3.5 h-3.5" />
+                            </Button>
+                            <Button
+                              variant="ghost"
+                              size="icon"
+                              onClick={() => handleDeleteSkill(skill.id)}
+                              className="text-red-500 hover:text-red-400 hover:bg-red-500/10"
+                              data-ocid={`skills.delete_button.${i + 1}`}
+                            >
+                              <Trash2 className="w-3.5 h-3.5" />
+                            </Button>
+                          </div>
+                        </div>
+                      )}
                     </CardContent>
                   </Card>
                 ))}

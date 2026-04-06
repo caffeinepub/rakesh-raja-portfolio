@@ -1,26 +1,22 @@
 # Rakesh Raja Portfolio
 
 ## Current State
-A full portfolio site with an admin dashboard at `/dashboard`. Dashboard allows editing Profile, Contact, Education, Experience, Skills, and Projects. The portfolio loads data from the backend once on component mount. Despite backend saves working correctly, changes made in the dashboard were not reflecting in the portfolio because:
-- The `useEffect` that loads backend data only re-runs when `fullActor` or `isFetching` changes
-- If the user updates dashboard in the same session (or same tab), the portfolio's `useEffect` never re-fires
-- Profile/Contact optional field mapping used truthy checks that could skip valid updates
+The dashboard has save functions for Profile, Contact, Education, Experience, Skills, and Projects. The portfolio detects changes by listening to `visibilitychange` events and polling every 15 seconds — so changes made in the dashboard only show up in the portfolio after the user manually switches tabs or waits up to 15s.
 
 ## Requested Changes (Diff)
 
 ### Add
-- `refreshTick` state in the Portfolio component that increments on `document.visibilitychange` (when tab regains focus) and every 15 seconds via interval
-- `refreshTick` added to the `useEffect` dependency array so data reloads whenever the user comes back to the portfolio tab
+- BroadcastChannel messaging: after every successful save in Dashboard (profile, contact, education, experience save/update/delete, skill save/update/delete, project save/update/delete), post a `{type: 'portfolioDataUpdated'}` message on the `portfolio-sync` channel.
+- BroadcastChannel listener in Portfolio (App.tsx): listen on `portfolio-sync` channel and immediately trigger a data re-fetch (increment `refreshTick`) when a message is received.
 
 ### Modify
-- Profile and Contact field mapping: replace `if (ps.field)` truthy checks with `|| fallback` pattern so backend values always override defaults when a save has been made
-- `useEffect` dependency array: add `refreshTick` to trigger re-fetch on visibility change
+- Dashboard.tsx: add a `notifyPortfolioUpdate()` helper that posts the broadcast message, and call it after every successful save/delete across all sections.
+- App.tsx Portfolio component: add a `useEffect` that opens a `BroadcastChannel('portfolio-sync')` listener and increments `refreshTick` on any message received.
 
 ### Remove
-- Nothing removed
+- Nothing removed — existing visibilitychange + polling logic stays as-is as fallback.
 
 ## Implementation Plan
-1. Add `refreshTick` useState and a `useEffect` that listens for `visibilitychange` and sets a 15s interval — both increment `refreshTick`
-2. In the data-loading `useEffect`, add `void refreshTick;` to reference it (satisfies linter) and add it to dependency array
-3. Fix profile field mapping to use `ps.field || prev` instead of `if (ps.field)`
-4. Fix contact field mapping the same way
+1. In Dashboard.tsx, add `notifyPortfolioUpdate` helper using `BroadcastChannel('portfolio-sync')` that posts `{type: 'portfolioDataUpdated'}`.
+2. Call `notifyPortfolioUpdate()` at the end of every successful save/delete: `handleSaveProfile` (on ok), `handleSaveContact` (on ok), `handleSaveEdu`, `handleDeleteEdu`, `handleSaveExp`, `handleDeleteExp`, `handleSaveSkill`, `handleUpdateSkill`, `handleDeleteSkill`, `handleSaveProj`, `handleDeleteProj`.
+3. In App.tsx Portfolio component, add a `useEffect` that opens `new BroadcastChannel('portfolio-sync')`, listens for messages, and calls `setRefreshTick(t => t + 1)`. Cleanup on unmount.

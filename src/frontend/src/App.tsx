@@ -2347,6 +2347,27 @@ function Portfolio() {
       clearInterval(interval);
     };
   }, []);
+  useEffect(() => {
+    let bc: BroadcastChannel | null = null;
+    try {
+      bc = new BroadcastChannel("portfolio-sync");
+      bc.onmessage = () => {
+        setRefreshTick((t) => t + 1);
+      };
+    } catch {
+      // Fallback: listen to localStorage changes from other tabs
+      const onStorage = (e: StorageEvent) => {
+        if (e.key === "portfolioDataUpdated") {
+          setRefreshTick((t) => t + 1);
+        }
+      };
+      window.addEventListener("storage", onStorage);
+      return () => window.removeEventListener("storage", onStorage);
+    }
+    return () => {
+      bc?.close();
+    };
+  }, []);
 
   const [portfolioData, setPortfolioData] = useState<PortfolioData>({
     experiences: DEFAULT_EXPERIENCES,

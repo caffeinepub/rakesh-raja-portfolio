@@ -392,6 +392,17 @@ actor {
     };
   };
 
+  public shared ({ caller }) func updateSkillCategory(pin : Text, id : Nat, category : Text, items : [Text], sortOrder : Nat) : async Bool {
+    if (pin != adminPin) { Runtime.trap("Unauthorized") };
+    switch (skillStore.get(id)) {
+      case (null) { Runtime.trap("Skill category not found") };
+      case (?_) {
+        skillStore.add(id, { id; category; items; sortOrder });
+        true;
+      };
+    };
+  };
+
   public query func getSkills() : async [SkillCategory] {
     skillStore.values().sort(compareSkills).toArray();
   };

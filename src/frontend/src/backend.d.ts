@@ -94,6 +94,7 @@ export interface backendInterface {
     submitReview(name: string, role: string, company: string, reviewText: string, rating: bigint): Promise<bigint>;
     updateExperience(pin: string, id: bigint, title: string, company: string, period: string, description: string, sortOrder: bigint): Promise<boolean>;
     updateProject(pin: string, id: bigint, title: string, url: string, imageUrl: string, sortOrder: bigint): Promise<boolean>;
+    updateSkillCategory(pin: string, id: bigint, category: string, items: Array<string>, sortOrder: bigint): Promise<boolean>;
     verifyAdmin(pin: string): Promise<boolean>;
     // Profile settings
     getProfileSettings(): Promise<[] | [ProfileSettings]>;
