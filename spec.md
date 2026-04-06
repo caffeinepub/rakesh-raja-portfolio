@@ -1,32 +1,26 @@
 # Rakesh Raja Portfolio
 
 ## Current State
-- Admin dashboard at /dashboard with PIN auth (rakesh2025)
-- Reviews stored in Map.empty (volatile — lost on canister restart)
-- Admin can view/delete reviews, see visit stats, change PIN
-- Portfolio content (experience, skills, projects) is hardcoded in App.tsx
+A full portfolio site with an admin dashboard at `/dashboard`. Dashboard allows editing Profile, Contact, Education, Experience, Skills, and Projects. The portfolio loads data from the backend once on component mount. Despite backend saves working correctly, changes made in the dashboard were not reflecting in the portfolio because:
+- The `useEffect` that loads backend data only re-runs when `fullActor` or `isFetching` changes
+- If the user updates dashboard in the same session (or same tab), the portfolio's `useEffect` never re-fires
+- Profile/Contact optional field mapping used truthy checks that could skip valid updates
 
 ## Requested Changes (Diff)
 
 ### Add
-- Stable storage for reviews so they survive canister restarts/upgrades
-- Backend support for managing Experience entries (add/update/delete)
-- Backend support for managing Skills (add/delete)
-- Backend support for managing Project entries (add/update/delete)
-- Admin dashboard tabs: Experience, Skills, Projects with full CRUD UI
+- `refreshTick` state in the Portfolio component that increments on `document.visibilitychange` (when tab regains focus) and every 15 seconds via interval
+- `refreshTick` added to the `useEffect` dependency array so data reloads whenever the user comes back to the portfolio tab
 
 ### Modify
-- Backend main.mo: convert reviews map to stable storage using stable var arrays
-- Dashboard.tsx: add Experience, Skills, Projects tabs
-- App.tsx: load experience, skills, projects from backend if available (fallback to hardcoded defaults)
+- Profile and Contact field mapping: replace `if (ps.field)` truthy checks with `|| fallback` pattern so backend values always override defaults when a save has been made
+- `useEffect` dependency array: add `refreshTick` to trigger re-fetch on visibility change
 
 ### Remove
 - Nothing removed
 
 ## Implementation Plan
-1. Update main.mo to use stable var for reviews (stable var reviewsData: [(Nat, Review)])
-2. Add Experience, Skill, Project types and stable storage in backend
-3. Add CRUD functions for each content type
-4. Update backend.d.ts to match new APIs
-5. Update Dashboard.tsx with new management tabs
-6. Update App.tsx to optionally load dynamic content from backend
+1. Add `refreshTick` useState and a `useEffect` that listens for `visibilitychange` and sets a 15s interval — both increment `refreshTick`
+2. In the data-loading `useEffect`, add `void refreshTick;` to reference it (satisfies linter) and add it to dependency array
+3. Fix profile field mapping to use `ps.field || prev` instead of `if (ps.field)`
+4. Fix contact field mapping the same way

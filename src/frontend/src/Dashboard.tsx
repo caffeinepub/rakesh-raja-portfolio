@@ -15,10 +15,12 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Textarea } from "@/components/ui/textarea";
 import {
   ArrowLeft,
+  AtSign,
   Briefcase,
   Edit2,
   Eye,
   FolderOpen,
+  GraduationCap,
   Loader2,
   Lock,
   LogOut,
@@ -26,11 +28,13 @@ import {
   Plus,
   Star,
   Trash2,
+  UserCircle,
   Wrench,
   X,
 } from "lucide-react";
 import { useCallback, useEffect, useState } from "react";
 import type {
+  Education as BackendEducation,
   Experience as BackendExperience,
   Project as BackendProject,
   backendInterface as FullBackend,
@@ -96,6 +100,55 @@ export default function Dashboard() {
   const [projSortOrder, setProjSortOrder] = useState("");
   const [projSaving, setProjSaving] = useState(false);
 
+  // Profile state
+  const [profileName, setProfileName] = useState("Rakesh.");
+  const [profileGreeting, setProfileGreeting] = useState("Hello,");
+  const [profileJobTitle, setProfileJobTitle] = useState(
+    "Visual & UI Designer",
+  );
+  const [profileTagline, setProfileTagline] = useState(
+    "Crafting impactful digital experiences through visual storytelling, UI design, and creative direction.",
+  );
+  const [profilePhotoUrl, setProfilePhotoUrl] = useState(
+    "/assets/uploads/gemini_generated_image_p3zf2jp3zf2jp3zf-019d3db5-2238-7630-af81-61df134deaf4-1.png",
+  );
+  const [profileResumeUrl, setProfileResumeUrl] = useState(
+    "/assets/uploads/rakesh_resume_updated_3-019d3ac0-14ec-76b8-a0de-6d54647ee243-1.pdf",
+  );
+  const [profileResumeFileName, setProfileResumeFileName] = useState(
+    "Rakesh_Raja_Resume.pdf",
+  );
+  const [profileSaving, setProfileSaving] = useState(false);
+  const [profileMsg, setProfileMsg] = useState("");
+  const [profileLoading, setProfileLoading] = useState(false);
+
+  // Contact state
+  const [contactEmail, setContactEmail] = useState("rakeshrajamca@gmail.com");
+  const [contactPhone, setContactPhone] = useState("+91 9500333907");
+  const [contactLocation, setContactLocation] = useState("Chennai, India");
+  const [contactBehanceUrl, setContactBehanceUrl] = useState(
+    "https://www.behance.net/rocketrakedae3",
+  );
+  const [contactLinkedinUrl, setContactLinkedinUrl] = useState(
+    "http://linkedin.com/in/rakesh-raja-a3792816b",
+  );
+  const [contactInstagramUrl, setContactInstagramUrl] = useState(
+    "https://www.instagram.com/rakesh_raja_filmmaker?igsh=MWN0eXJsOHU0cXk5bQ%3D%3D&utm_source=qr",
+  );
+  const [contactSaving, setContactSaving] = useState(false);
+  const [contactMsg, setContactMsg] = useState("");
+  const [contactLoading, setContactLoading] = useState(false);
+
+  // Education state
+  const [educations, setEducations] = useState<BackendEducation[]>([]);
+  const [eduLoading, setEduLoading] = useState(false);
+  const [eduShowAdd, setEduShowAdd] = useState(false);
+  const [eduEditId, setEduEditId] = useState<bigint | null>(null);
+  const [eduDegree, setEduDegree] = useState("");
+  const [eduCollege, setEduCollege] = useState("");
+  const [eduYear, setEduYear] = useState("");
+  const [eduSaving, setEduSaving] = useState(false);
+
   const loadReviews = useCallback(async () => {
     if (!fullActor) return;
     setReviewsLoading(true);
@@ -107,7 +160,6 @@ export default function Dashboard() {
     }
   }, [fullActor]);
 
-  // biome-ignore lint/correctness/useExhaustiveDependencies: fullActor wraps actor
   const loadStats = useCallback(async () => {
     if (!fullActor) return;
     setStatsLoading(true);
@@ -157,6 +209,60 @@ export default function Dashboard() {
     }
   }, [fullActor]);
 
+  const loadProfileSettings = useCallback(async () => {
+    if (!fullActor) return;
+    setProfileLoading(true);
+    try {
+      const result = await fullActor!.getProfileSettings();
+      if (result.length > 0 && result[0]) {
+        const s = result[0];
+        if (s.name) setProfileName(s.name);
+        if (s.greeting) setProfileGreeting(s.greeting);
+        if (s.jobTitle) setProfileJobTitle(s.jobTitle);
+        if (s.tagline) setProfileTagline(s.tagline);
+        if (s.profilePhotoUrl) setProfilePhotoUrl(s.profilePhotoUrl);
+        if (s.resumeUrl) setProfileResumeUrl(s.resumeUrl);
+        if (s.resumeFileName) setProfileResumeFileName(s.resumeFileName);
+      }
+    } catch {
+      /* ignore */
+    } finally {
+      setProfileLoading(false);
+    }
+  }, [fullActor]);
+
+  const loadContactSettings = useCallback(async () => {
+    if (!fullActor) return;
+    setContactLoading(true);
+    try {
+      const result = await fullActor!.getContactSettings();
+      if (result.length > 0 && result[0]) {
+        const s = result[0];
+        if (s.email) setContactEmail(s.email);
+        if (s.phone) setContactPhone(s.phone);
+        if (s.location) setContactLocation(s.location);
+        if (s.behanceUrl) setContactBehanceUrl(s.behanceUrl);
+        if (s.linkedinUrl) setContactLinkedinUrl(s.linkedinUrl);
+        if (s.instagramUrl) setContactInstagramUrl(s.instagramUrl);
+      }
+    } catch {
+      /* ignore */
+    } finally {
+      setContactLoading(false);
+    }
+  }, [fullActor]);
+
+  const loadEducations = useCallback(async () => {
+    if (!fullActor) return;
+    setEduLoading(true);
+    try {
+      const data = await fullActor!.getEducations();
+      setEducations(data);
+    } finally {
+      setEduLoading(false);
+    }
+  }, [fullActor]);
+
   useEffect(() => {
     if (isLoggedIn && fullActor) {
       loadReviews();
@@ -164,6 +270,9 @@ export default function Dashboard() {
       loadExperiences();
       loadSkills();
       loadProjects();
+      loadProfileSettings();
+      loadContactSettings();
+      loadEducations();
     }
   }, [
     isLoggedIn,
@@ -173,6 +282,9 @@ export default function Dashboard() {
     loadExperiences,
     loadSkills,
     loadProjects,
+    loadProfileSettings,
+    loadContactSettings,
+    loadEducations,
   ]);
 
   async function handleLogin() {
@@ -262,6 +374,124 @@ export default function Dashboard() {
     setExperiences([]);
     setSkills([]);
     setProjects([]);
+    setEducations([]);
+    setProfileMsg("");
+    setContactMsg("");
+  }
+
+  // Education handlers
+  function startEditEdu(edu: BackendEducation) {
+    setEduEditId(edu.id);
+    setEduDegree(edu.degree);
+    setEduCollege(edu.college);
+    setEduYear(edu.year);
+    setEduShowAdd(false);
+  }
+
+  function cancelEduForm() {
+    setEduShowAdd(false);
+    setEduEditId(null);
+    setEduDegree("");
+    setEduCollege("");
+    setEduYear("");
+  }
+
+  async function handleSaveEdu() {
+    if (!fullActor || !eduDegree || !eduCollege) return;
+    setEduSaving(true);
+    try {
+      if (eduEditId !== null) {
+        await fullActor!.updateEducation(
+          currentPin,
+          eduEditId,
+          eduDegree,
+          eduCollege,
+          eduYear,
+          BigInt(educations.length),
+        );
+      } else {
+        await fullActor!.addEducation(
+          currentPin,
+          eduDegree,
+          eduCollege,
+          eduYear,
+          BigInt(educations.length + 1),
+        );
+      }
+      cancelEduForm();
+      await loadEducations();
+    } finally {
+      setEduSaving(false);
+    }
+  }
+
+  async function handleDeleteEdu(id: bigint) {
+    if (!fullActor) return;
+    await fullActor!.deleteEducation(currentPin, id);
+    await loadEducations();
+  }
+
+  async function handleSaveProfile() {
+    if (!fullActor) {
+      setProfileMsg(
+        "Not connected to backend. Please wait a moment and try again.",
+      );
+      return;
+    }
+    setProfileSaving(true);
+    setProfileMsg("");
+    try {
+      const ok = await fullActor!.setProfileSettings(
+        currentPin,
+        profileName,
+        profileGreeting,
+        profileJobTitle,
+        profileTagline,
+        profilePhotoUrl,
+        profileResumeUrl,
+        profileResumeFileName,
+      );
+      if (ok) {
+        setProfileMsg("Profile saved successfully!");
+      } else {
+        setProfileMsg("Failed to save profile. Check your PIN.");
+      }
+    } catch {
+      setProfileMsg("Error saving profile. Please try again.");
+    } finally {
+      setProfileSaving(false);
+    }
+  }
+
+  async function handleSaveContact() {
+    if (!fullActor) {
+      setContactMsg(
+        "Not connected to backend. Please wait a moment and try again.",
+      );
+      return;
+    }
+    setContactSaving(true);
+    setContactMsg("");
+    try {
+      const ok = await fullActor!.setContactSettings(
+        currentPin,
+        contactEmail,
+        contactPhone,
+        contactLocation,
+        contactBehanceUrl,
+        contactLinkedinUrl,
+        contactInstagramUrl,
+      );
+      if (ok) {
+        setContactMsg("Contact details saved successfully!");
+      } else {
+        setContactMsg("Failed to save contact details. Check your PIN.");
+      }
+    } catch {
+      setContactMsg("Error saving contact details. Please try again.");
+    } finally {
+      setContactSaving(false);
+    }
   }
 
   function renderStars(rating: bigint) {
@@ -575,6 +805,30 @@ export default function Dashboard() {
             >
               <FolderOpen className="w-4 h-4 mr-2" />
               Projects
+            </TabsTrigger>
+            <TabsTrigger
+              value="profile"
+              className="data-[state=active]:bg-violet-600 data-[state=active]:text-white text-zinc-400"
+              data-ocid="dashboard.tab"
+            >
+              <UserCircle className="w-4 h-4 mr-2" />
+              Profile
+            </TabsTrigger>
+            <TabsTrigger
+              value="contact"
+              className="data-[state=active]:bg-violet-600 data-[state=active]:text-white text-zinc-400"
+              data-ocid="dashboard.tab"
+            >
+              <AtSign className="w-4 h-4 mr-2" />
+              Contact
+            </TabsTrigger>
+            <TabsTrigger
+              value="education"
+              className="data-[state=active]:bg-violet-600 data-[state=active]:text-white text-zinc-400"
+              data-ocid="dashboard.tab"
+            >
+              <GraduationCap className="w-4 h-4 mr-2" />
+              Education
             </TabsTrigger>
             <TabsTrigger
               value="pin"
@@ -1313,6 +1567,444 @@ export default function Dashboard() {
                             onClick={() => handleDeleteProj(p.id)}
                             className="text-red-500 hover:text-red-400 hover:bg-red-500/10"
                             data-ocid={`projects.delete_button.${i + 1}`}
+                          >
+                            <Trash2 className="w-3.5 h-3.5" />
+                          </Button>
+                        </div>
+                      </div>
+                    </CardContent>
+                  </Card>
+                ))}
+              </div>
+            )}
+          </TabsContent>
+
+          {/* Profile Tab */}
+          <TabsContent value="profile">
+            <div className="max-w-2xl">
+              <h2 className="text-lg font-semibold mb-4 flex items-center gap-2">
+                <UserCircle className="w-5 h-5 text-violet-400" />
+                Profile Settings
+              </h2>
+              {profileLoading ? (
+                <div
+                  className="flex items-center justify-center py-12 text-zinc-500"
+                  data-ocid="profile.loading_state"
+                >
+                  <Loader2 className="w-5 h-5 animate-spin mr-2" /> Loading...
+                </div>
+              ) : (
+                <Card className="bg-zinc-900 border-zinc-800">
+                  <CardContent className="p-6 space-y-4">
+                    <div className="grid sm:grid-cols-2 gap-4">
+                      <div className="space-y-1.5">
+                        <Label className={labelCls}>Name</Label>
+                        <Input
+                          value={profileName}
+                          onChange={(e) => setProfileName(e.target.value)}
+                          placeholder="Rakesh."
+                          className={inputCls}
+                          data-ocid="profile.input"
+                        />
+                      </div>
+                      <div className="space-y-1.5">
+                        <Label className={labelCls}>Greeting</Label>
+                        <Input
+                          value={profileGreeting}
+                          onChange={(e) => setProfileGreeting(e.target.value)}
+                          placeholder="Hello,"
+                          className={inputCls}
+                          data-ocid="profile.input"
+                        />
+                      </div>
+                    </div>
+                    <div className="space-y-1.5">
+                      <Label className={labelCls}>Job Title</Label>
+                      <Input
+                        value={profileJobTitle}
+                        onChange={(e) => setProfileJobTitle(e.target.value)}
+                        placeholder="Visual & UI Designer"
+                        className={inputCls}
+                        data-ocid="profile.input"
+                      />
+                    </div>
+                    <div className="space-y-1.5">
+                      <Label className={labelCls}>Tagline / Bio</Label>
+                      <Textarea
+                        value={profileTagline}
+                        onChange={(e) => setProfileTagline(e.target.value)}
+                        placeholder="Crafting impactful digital experiences..."
+                        rows={3}
+                        className={`${inputCls} resize-none`}
+                        data-ocid="profile.textarea"
+                      />
+                    </div>
+                    <div className="space-y-1.5">
+                      <Label className={labelCls}>Profile Photo URL</Label>
+                      <Input
+                        value={profilePhotoUrl}
+                        onChange={(e) => setProfilePhotoUrl(e.target.value)}
+                        placeholder="/assets/uploads/photo.png"
+                        className={inputCls}
+                        data-ocid="profile.input"
+                      />
+                      {profilePhotoUrl && (
+                        <div className="mt-2 flex items-center gap-3">
+                          <img
+                            src={profilePhotoUrl}
+                            alt="Profile preview"
+                            className="w-16 h-16 rounded-full object-cover border-2 border-zinc-700"
+                            onError={(e) => {
+                              (e.target as HTMLImageElement).style.display =
+                                "none";
+                            }}
+                          />
+                          <span className="text-zinc-500 text-xs">Preview</span>
+                        </div>
+                      )}
+                    </div>
+                    <div className="space-y-1.5">
+                      <Label className={labelCls}>Resume PDF URL</Label>
+                      <Input
+                        value={profileResumeUrl}
+                        onChange={(e) => setProfileResumeUrl(e.target.value)}
+                        placeholder="/assets/uploads/resume.pdf"
+                        className={inputCls}
+                        data-ocid="profile.input"
+                      />
+                    </div>
+                    <div className="space-y-1.5">
+                      <Label className={labelCls}>
+                        Resume File Name (download filename)
+                      </Label>
+                      <Input
+                        value={profileResumeFileName}
+                        onChange={(e) =>
+                          setProfileResumeFileName(e.target.value)
+                        }
+                        placeholder="Rakesh_Raja_Resume.pdf"
+                        className={inputCls}
+                        data-ocid="profile.input"
+                      />
+                    </div>
+                    {profileMsg && (
+                      <p
+                        className={`text-sm ${profileMsg.includes("success") ? "text-green-400" : "text-red-400"}`}
+                        data-ocid={
+                          profileMsg.includes("success")
+                            ? "profile.success_state"
+                            : "profile.error_state"
+                        }
+                      >
+                        {profileMsg}
+                      </p>
+                    )}
+                    <Button
+                      onClick={handleSaveProfile}
+                      disabled={profileSaving}
+                      className="w-full bg-violet-600 hover:bg-violet-700 text-white"
+                      data-ocid="profile.save_button"
+                    >
+                      {profileSaving ? (
+                        <>
+                          <Loader2 className="w-4 h-4 mr-2 animate-spin" />
+                          Saving...
+                        </>
+                      ) : (
+                        "Save Profile"
+                      )}
+                    </Button>
+                  </CardContent>
+                </Card>
+              )}
+            </div>
+          </TabsContent>
+
+          {/* Contact Tab */}
+          <TabsContent value="contact">
+            <div className="max-w-2xl">
+              <h2 className="text-lg font-semibold mb-4 flex items-center gap-2">
+                <AtSign className="w-5 h-5 text-violet-400" />
+                Contact Details
+              </h2>
+              {contactLoading ? (
+                <div
+                  className="flex items-center justify-center py-12 text-zinc-500"
+                  data-ocid="contact.loading_state"
+                >
+                  <Loader2 className="w-5 h-5 animate-spin mr-2" /> Loading...
+                </div>
+              ) : (
+                <Card className="bg-zinc-900 border-zinc-800">
+                  <CardContent className="p-6 space-y-4">
+                    <div className="grid sm:grid-cols-2 gap-4">
+                      <div className="space-y-1.5">
+                        <Label className={labelCls}>Email</Label>
+                        <Input
+                          value={contactEmail}
+                          onChange={(e) => setContactEmail(e.target.value)}
+                          placeholder="email@example.com"
+                          className={inputCls}
+                          data-ocid="contact.input"
+                        />
+                      </div>
+                      <div className="space-y-1.5">
+                        <Label className={labelCls}>Phone</Label>
+                        <Input
+                          value={contactPhone}
+                          onChange={(e) => setContactPhone(e.target.value)}
+                          placeholder="+91 9XXXXXXXXX"
+                          className={inputCls}
+                          data-ocid="contact.input"
+                        />
+                      </div>
+                    </div>
+                    <div className="space-y-1.5">
+                      <Label className={labelCls}>Location</Label>
+                      <Input
+                        value={contactLocation}
+                        onChange={(e) => setContactLocation(e.target.value)}
+                        placeholder="Chennai, India"
+                        className={inputCls}
+                        data-ocid="contact.input"
+                      />
+                    </div>
+                    <div className="space-y-1.5">
+                      <Label className={labelCls}>Behance URL</Label>
+                      <Input
+                        value={contactBehanceUrl}
+                        onChange={(e) => setContactBehanceUrl(e.target.value)}
+                        placeholder="https://www.behance.net/..."
+                        className={inputCls}
+                        data-ocid="contact.input"
+                      />
+                    </div>
+                    <div className="space-y-1.5">
+                      <Label className={labelCls}>LinkedIn URL</Label>
+                      <Input
+                        value={contactLinkedinUrl}
+                        onChange={(e) => setContactLinkedinUrl(e.target.value)}
+                        placeholder="https://linkedin.com/in/..."
+                        className={inputCls}
+                        data-ocid="contact.input"
+                      />
+                    </div>
+                    <div className="space-y-1.5">
+                      <Label className={labelCls}>Instagram URL</Label>
+                      <Input
+                        value={contactInstagramUrl}
+                        onChange={(e) => setContactInstagramUrl(e.target.value)}
+                        placeholder="https://www.instagram.com/..."
+                        className={inputCls}
+                        data-ocid="contact.input"
+                      />
+                    </div>
+                    {contactMsg && (
+                      <p
+                        className={`text-sm ${contactMsg.includes("success") ? "text-green-400" : "text-red-400"}`}
+                        data-ocid={
+                          contactMsg.includes("success")
+                            ? "contact.success_state"
+                            : "contact.error_state"
+                        }
+                      >
+                        {contactMsg}
+                      </p>
+                    )}
+                    <Button
+                      onClick={handleSaveContact}
+                      disabled={contactSaving}
+                      className="w-full bg-violet-600 hover:bg-violet-700 text-white"
+                      data-ocid="contact.save_button"
+                    >
+                      {contactSaving ? (
+                        <>
+                          <Loader2 className="w-4 h-4 mr-2 animate-spin" />
+                          Saving...
+                        </>
+                      ) : (
+                        "Save Contact"
+                      )}
+                    </Button>
+                  </CardContent>
+                </Card>
+              )}
+            </div>
+          </TabsContent>
+
+          {/* Education Tab */}
+          <TabsContent value="education">
+            <div className="flex items-center justify-between mb-4">
+              <h2 className="text-lg font-semibold flex items-center gap-2">
+                <GraduationCap className="w-5 h-5 text-violet-400" />
+                Education
+                <Badge className="ml-1 bg-violet-600/20 text-violet-400 border-violet-600/30">
+                  {educations.length}
+                </Badge>
+              </h2>
+              <div className="flex gap-2">
+                <Button
+                  variant="outline"
+                  size="sm"
+                  onClick={loadEducations}
+                  disabled={eduLoading}
+                  className="border-zinc-700 text-zinc-300 hover:bg-zinc-800 hover:text-white"
+                  data-ocid="education.secondary_button"
+                >
+                  {eduLoading ? (
+                    <Loader2 className="w-3.5 h-3.5 animate-spin" />
+                  ) : (
+                    "Refresh"
+                  )}
+                </Button>
+                {!eduShowAdd && eduEditId === null && (
+                  <Button
+                    size="sm"
+                    onClick={() => setEduShowAdd(true)}
+                    className="bg-violet-600 hover:bg-violet-700 text-white gap-1"
+                    data-ocid="education.open_modal_button"
+                  >
+                    <Plus className="w-3.5 h-3.5" />
+                    Add Education
+                  </Button>
+                )}
+              </div>
+            </div>
+
+            {(eduShowAdd || eduEditId !== null) && (
+              <Card
+                className="bg-zinc-900 border-zinc-700 mb-4"
+                data-ocid="education.panel"
+              >
+                <CardHeader className="pb-3">
+                  <CardTitle className="text-sm text-white flex items-center justify-between">
+                    {eduEditId !== null ? "Edit Education" : "Add Education"}
+                    <button
+                      type="button"
+                      onClick={cancelEduForm}
+                      className="text-zinc-500 hover:text-white"
+                    >
+                      <X className="w-4 h-4" />
+                    </button>
+                  </CardTitle>
+                </CardHeader>
+                <CardContent className="space-y-3">
+                  <div className="space-y-1">
+                    <Label className={labelCls}>Degree / Course *</Label>
+                    <Input
+                      value={eduDegree}
+                      onChange={(e) => setEduDegree(e.target.value)}
+                      placeholder="Master of Computer Applications (MCA)"
+                      className={inputCls}
+                      data-ocid="education.input"
+                    />
+                  </div>
+                  <div className="space-y-1">
+                    <Label className={labelCls}>College / Institution *</Label>
+                    <Input
+                      value={eduCollege}
+                      onChange={(e) => setEduCollege(e.target.value)}
+                      placeholder="FX Engineering College"
+                      className={inputCls}
+                      data-ocid="education.input"
+                    />
+                  </div>
+                  <div className="space-y-1">
+                    <Label className={labelCls}>Year</Label>
+                    <Input
+                      value={eduYear}
+                      onChange={(e) => setEduYear(e.target.value)}
+                      placeholder="2017"
+                      className={inputCls}
+                      data-ocid="education.input"
+                    />
+                  </div>
+                  <div className="flex gap-2 justify-end">
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      onClick={cancelEduForm}
+                      className="border-zinc-700 text-zinc-300 hover:bg-zinc-800"
+                      data-ocid="education.cancel_button"
+                    >
+                      Cancel
+                    </Button>
+                    <Button
+                      size="sm"
+                      onClick={handleSaveEdu}
+                      disabled={eduSaving || !eduDegree || !eduCollege}
+                      className="bg-violet-600 hover:bg-violet-700 text-white"
+                      data-ocid="education.save_button"
+                    >
+                      {eduSaving ? (
+                        <Loader2 className="w-3.5 h-3.5 animate-spin mr-1" />
+                      ) : null}
+                      {eduEditId !== null ? "Update" : "Save"}
+                    </Button>
+                  </div>
+                </CardContent>
+              </Card>
+            )}
+
+            {eduLoading ? (
+              <div
+                className="flex items-center justify-center py-12 text-zinc-500"
+                data-ocid="education.loading_state"
+              >
+                <Loader2 className="w-5 h-5 animate-spin mr-2" /> Loading...
+              </div>
+            ) : educations.length === 0 ? (
+              <div
+                className="text-center py-12 text-zinc-500"
+                data-ocid="education.empty_state"
+              >
+                No education records saved yet. Add one to override the default
+                portfolio content.
+              </div>
+            ) : (
+              <div className="grid gap-3">
+                {educations.map((edu, i) => (
+                  <Card
+                    key={String(edu.id)}
+                    className="bg-zinc-900 border-zinc-800"
+                    data-ocid={`education.item.${i + 1}`}
+                  >
+                    <CardContent className="p-4">
+                      <div className="flex items-start justify-between gap-4">
+                        <div className="flex-1 min-w-0">
+                          <div className="flex items-center gap-2 flex-wrap mb-1">
+                            <span className="font-medium text-white">
+                              {edu.degree}
+                            </span>
+                            <Badge
+                              variant="outline"
+                              className="text-xs border-zinc-700 text-zinc-400"
+                            >
+                              {edu.college}
+                            </Badge>
+                            {edu.year && (
+                              <span className="text-xs text-zinc-500">
+                                {edu.year}
+                              </span>
+                            )}
+                          </div>
+                        </div>
+                        <div className="flex gap-1 shrink-0">
+                          <Button
+                            variant="ghost"
+                            size="icon"
+                            onClick={() => startEditEdu(edu)}
+                            className="text-zinc-400 hover:text-white hover:bg-zinc-800"
+                            data-ocid={`education.edit_button.${i + 1}`}
+                          >
+                            <Edit2 className="w-3.5 h-3.5" />
+                          </Button>
+                          <Button
+                            variant="ghost"
+                            size="icon"
+                            onClick={() => handleDeleteEdu(edu.id)}
+                            className="text-red-500 hover:text-red-400 hover:bg-red-500/10"
+                            data-ocid={`education.delete_button.${i + 1}`}
                           >
                             <Trash2 className="w-3.5 h-3.5" />
                           </Button>

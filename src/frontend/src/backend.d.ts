@@ -41,6 +41,30 @@ export interface Experience {
     description: string;
     company: string;
 }
+export interface ProfileSettings {
+    name: string;
+    greeting: string;
+    jobTitle: string;
+    tagline: string;
+    profilePhotoUrl: string;
+    resumeUrl: string;
+    resumeFileName: string;
+}
+export interface ContactSettings {
+    email: string;
+    phone: string;
+    location: string;
+    behanceUrl: string;
+    linkedinUrl: string;
+    instagramUrl: string;
+}
+export interface Education {
+    id: bigint;
+    degree: string;
+    college: string;
+    year: string;
+    sortOrder: bigint;
+}
 export interface backendInterface {
     addExperience(pin: string, title: string, company: string, period: string, description: string, sortOrder: bigint): Promise<bigint>;
     addProject(pin: string, title: string, url: string, imageUrl: string, sortOrder: bigint): Promise<bigint>;
@@ -71,4 +95,15 @@ export interface backendInterface {
     updateExperience(pin: string, id: bigint, title: string, company: string, period: string, description: string, sortOrder: bigint): Promise<boolean>;
     updateProject(pin: string, id: bigint, title: string, url: string, imageUrl: string, sortOrder: bigint): Promise<boolean>;
     verifyAdmin(pin: string): Promise<boolean>;
+    // Profile settings
+    getProfileSettings(): Promise<[] | [ProfileSettings]>;
+    setProfileSettings(pin: string, name: string, greeting: string, jobTitle: string, tagline: string, profilePhotoUrl: string, resumeUrl: string, resumeFileName: string): Promise<boolean>;
+    // Contact settings
+    getContactSettings(): Promise<[] | [ContactSettings]>;
+    setContactSettings(pin: string, email: string, phone: string, location: string, behanceUrl: string, linkedinUrl: string, instagramUrl: string): Promise<boolean>;
+    // Education
+    getEducations(): Promise<Array<Education>>;
+    addEducation(pin: string, degree: string, college: string, year: string, sortOrder: bigint): Promise<bigint>;
+    updateEducation(pin: string, id: bigint, degree: string, college: string, year: string, sortOrder: bigint): Promise<boolean>;
+    deleteEducation(pin: string, id: bigint): Promise<boolean>;
 }

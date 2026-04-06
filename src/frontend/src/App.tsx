@@ -19,11 +19,14 @@ import {
   useState,
 } from "react";
 import type {
+  Education as BackendEducation,
   Experience as BackendExperience,
   Project as BackendProject,
+  ContactSettings,
+  ProfileSettings,
   Review,
   SkillCategory,
-} from "./backend.d.ts";
+} from "./backend.d";
 import { useActor } from "./hooks/useActor";
 
 // ===== TYPES =====
@@ -283,6 +286,20 @@ interface PortfolioData {
   toolSkills: string[];
   skillCategories: { category: string; items: string[] }[];
   projects: Project[];
+  profileName: string;
+  profileGreeting: string;
+  profileJobTitle: string;
+  profileTagline: string;
+  profilePhotoUrl: string;
+  profileResumeUrl: string;
+  profileResumeFileName: string;
+  contactEmail: string;
+  contactPhone: string;
+  contactLocation: string;
+  contactBehanceUrl: string;
+  contactLinkedinUrl: string;
+  contactInstagramUrl: string;
+  educations: Education[];
 }
 
 const PortfolioDataContext = createContext<PortfolioData>({
@@ -294,6 +311,24 @@ const PortfolioDataContext = createContext<PortfolioData>({
     { category: "Tools", items: DEFAULT_TOOL_SKILLS },
   ],
   projects: DEFAULT_PROJECTS,
+  profileName: "Rakesh.",
+  profileGreeting: "Hello,",
+  profileJobTitle: "Visual & UI Designer",
+  profileTagline:
+    "Crafting impactful digital experiences through visual storytelling, UI design, and creative direction.",
+  profilePhotoUrl:
+    "/assets/uploads/gemini_generated_image_p3zf2jp3zf2jp3zf-019d3db5-2238-7630-af81-61df134deaf4-1.png",
+  profileResumeUrl:
+    "/assets/uploads/rakesh_resume_updated_3-019d3ac0-14ec-76b8-a0de-6d54647ee243-1.pdf",
+  profileResumeFileName: "Rakesh_Raja_Resume.pdf",
+  contactEmail: "rakeshrajamca@gmail.com",
+  contactPhone: "+91 9500333907",
+  contactLocation: "Chennai, India",
+  contactBehanceUrl: "https://www.behance.net/rocketrakedae3",
+  contactLinkedinUrl: "http://linkedin.com/in/rakesh-raja-a3792816b",
+  contactInstagramUrl:
+    "https://www.instagram.com/rakesh_raja_filmmaker?igsh=MWN0eXJsOHU0cXk5bQ%3D%3D&utm_source=qr",
+  educations: educations,
 });
 
 function usePortfolioData() {
@@ -397,6 +432,7 @@ function useHeaderBehavior() {
 function Header() {
   const { isVisible, isScrolled } = useHeaderBehavior();
   const [menuOpen, setMenuOpen] = useState(false);
+  const { profileJobTitle: headerJobTitle } = usePortfolioData();
 
   return (
     <header
@@ -425,7 +461,7 @@ function Header() {
             className="font-body text-xs font-medium tracking-widest uppercase"
             style={{ color: "var(--color-text-secondary)" }}
           >
-            Visual &amp; UI Designer
+            {headerJobTitle}
           </span>
         </a>
 
@@ -489,6 +525,7 @@ function Header() {
 
 // ===== HERO PROFILE PHOTO =====
 function HeroProfilePhoto() {
+  const { profilePhotoUrl } = usePortfolioData();
   return (
     <>
       <div
@@ -712,7 +749,7 @@ function HeroProfilePhoto() {
           }}
         >
           <img
-            src="/assets/uploads/gemini_generated_image_p3zf2jp3zf2jp3zf-019d3db5-2238-7630-af81-61df134deaf4-1.png"
+            src={profilePhotoUrl}
             alt="K. Rakesh Raja – Visual & UI Designer"
             style={{
               width: "100%",
@@ -1020,6 +1057,14 @@ function HeroProfilePhoto() {
 
 // ===== HERO =====
 function HeroSection() {
+  const {
+    profileName,
+    profileGreeting,
+    profileJobTitle,
+    profileTagline,
+    profileResumeUrl,
+    profileResumeFileName,
+  } = usePortfolioData();
   return (
     <section
       id="home"
@@ -1061,7 +1106,7 @@ function HeroSection() {
                 className="reveal reveal-delay-1 block text-4xl lg:text-6xl font-extrabold uppercase tracking-tight"
                 style={{ color: "var(--color-blue)" }}
               >
-                Hello,
+                {profileGreeting}
               </span>
               <span
                 className="reveal reveal-delay-2 block text-6xl lg:text-8xl font-extrabold uppercase tracking-tight"
@@ -1073,7 +1118,7 @@ function HeroSection() {
                 className="reveal reveal-delay-3 block text-6xl lg:text-8xl font-extrabold uppercase tracking-tight"
                 style={{ color: "var(--color-text)", lineHeight: 1 }}
               >
-                Rakesh.
+                {profileName}
               </span>
             </h1>
 
@@ -1082,7 +1127,7 @@ function HeroSection() {
                 className="font-display text-xl lg:text-2xl font-bold uppercase tracking-[0.15em]"
                 style={{ color: "var(--color-gold)" }}
               >
-                Visual &amp; UI Designer
+                {profileJobTitle}
               </span>
             </div>
 
@@ -1090,8 +1135,7 @@ function HeroSection() {
               className="reveal reveal-delay-4 font-body text-base lg:text-lg leading-relaxed mb-10 max-w-lg"
               style={{ color: "var(--color-text-secondary)" }}
             >
-              Crafting impactful digital experiences through visual
-              storytelling, UI design, and creative direction.
+              {profileTagline}
             </p>
 
             <div className="reveal reveal-delay-4 flex flex-wrap gap-4">
@@ -1120,8 +1164,8 @@ function HeroSection() {
                 Get In Touch
               </a>
               <a
-                href="/assets/uploads/rakesh_resume_updated_3-019d3ac0-14ec-76b8-a0de-6d54647ee243-1.pdf"
-                download="Rakesh_Raja_Resume.pdf"
+                href={profileResumeUrl}
+                download={profileResumeFileName}
                 target="_blank"
                 rel="noopener noreferrer"
                 className="inline-flex items-center gap-2 px-7 py-3 rounded-full font-body font-semibold text-sm uppercase tracking-wider transition-all duration-200 hover:opacity-90 hover:scale-105"
@@ -1518,6 +1562,9 @@ function ProjectsSection() {
 
 // ===== EDUCATION =====
 function EducationSection() {
+  const { educations: contextEducations } = usePortfolioData();
+  const displayEducations =
+    contextEducations.length > 0 ? contextEducations : educations;
   return (
     <section id="education" className="py-24" data-ocid="education.section">
       <div style={{ maxWidth: "1200px" }} className="mx-auto px-6">
@@ -1537,7 +1584,7 @@ function EducationSection() {
         </h2>
 
         <div className="grid md:grid-cols-2 gap-6">
-          {educations.map((edu, i) => (
+          {displayEducations.map((edu, i) => (
             <div
               key={edu.degree}
               className={`reveal reveal-delay-${i + 1} rounded-xl p-7`}
@@ -2017,47 +2064,57 @@ function ReviewsSection() {
   );
 }
 
-// ===== CONTACT =====
-const contactItems: ContactItem[] = [
-  {
-    icon: <Mail size={18} />,
-    label: "Email",
-    value: "rakeshrajamca@gmail.com",
-    href: "mailto:rakeshrajamca@gmail.com",
-  },
-  {
-    icon: <Phone size={18} />,
-    label: "Phone",
-    value: "+91 9500333907",
-    href: "tel:+919500333907",
-  },
-  {
-    icon: <MapPin size={18} />,
-    label: "Location",
-    value: "Chennai, India",
-    href: null,
-  },
-  {
-    icon: <ExternalLink size={18} />,
-    label: "Behance",
-    value: "behance.net/rocketrakedae3",
-    href: "https://www.behance.net/rocketrakedae3",
-  },
-  {
-    icon: <Linkedin size={18} />,
-    label: "LinkedIn",
-    value: "linkedin.com/in/rakesh-raja-a3792816b",
-    href: "https://www.linkedin.com/in/rakesh-raja-a3792816b",
-  },
-  {
-    icon: <Instagram size={18} />,
-    label: "Instagram",
-    value: "@rakesh_raja_filmmaker",
-    href: "https://www.instagram.com/rakesh_raja_filmmaker?igsh=MWN0eXJsOHU0cXk5bQ%3D%3D&utm_source=qr",
-  },
-];
-
 function ContactSection() {
+  const {
+    contactEmail,
+    contactPhone,
+    contactLocation,
+    contactBehanceUrl,
+    contactLinkedinUrl,
+    contactInstagramUrl,
+  } = usePortfolioData();
+
+  const dynamicContactItems: ContactItem[] = [
+    {
+      icon: <Mail size={18} />,
+      label: "Email",
+      value: contactEmail,
+      href: `mailto:${contactEmail}`,
+    },
+    {
+      icon: <Phone size={18} />,
+      label: "Phone",
+      value: contactPhone,
+      href: `tel:${contactPhone.replace(/\s/g, "")}`,
+    },
+    {
+      icon: <MapPin size={18} />,
+      label: "Location",
+      value: contactLocation,
+      href: null,
+    },
+    {
+      icon: <ExternalLink size={18} />,
+      label: "Behance",
+      value: contactBehanceUrl.replace("https://", "").replace("http://", ""),
+      href: contactBehanceUrl,
+    },
+    {
+      icon: <Linkedin size={18} />,
+      label: "LinkedIn",
+      value: contactLinkedinUrl.replace("https://", "").replace("http://", ""),
+      href: contactLinkedinUrl.startsWith("http")
+        ? contactLinkedinUrl
+        : `https://${contactLinkedinUrl}`,
+    },
+    {
+      icon: <Instagram size={18} />,
+      label: "Instagram",
+      value: "@rakesh_raja_filmmaker",
+      href: contactInstagramUrl,
+    },
+  ];
+
   return (
     <section
       id="contact"
@@ -2108,7 +2165,7 @@ function ContactSection() {
 
           {/* Contact info */}
           <div className="reveal reveal-delay-2 space-y-5">
-            {contactItems.map((item, i) => (
+            {dynamicContactItems.map((item, i) => (
               <div
                 key={item.label}
                 className="flex items-center gap-5 rounded-xl p-5"
@@ -2270,6 +2327,27 @@ function Portfolio() {
     | import("./backend.d").backendInterface
     | null;
 
+  // Refresh data when tab becomes visible (e.g. after making dashboard changes)
+  const [refreshTick, setRefreshTick] = useState(0);
+  useEffect(() => {
+    function onVisible() {
+      if (document.visibilityState === "visible") {
+        setRefreshTick((t) => t + 1);
+      }
+    }
+    document.addEventListener("visibilitychange", onVisible);
+    // Also poll every 15s while page is open
+    const interval = setInterval(() => {
+      if (document.visibilityState === "visible") {
+        setRefreshTick((t) => t + 1);
+      }
+    }, 15000);
+    return () => {
+      document.removeEventListener("visibilitychange", onVisible);
+      clearInterval(interval);
+    };
+  }, []);
+
   const [portfolioData, setPortfolioData] = useState<PortfolioData>({
     experiences: DEFAULT_EXPERIENCES,
     designSkills: DEFAULT_DESIGN_SKILLS,
@@ -2279,25 +2357,59 @@ function Portfolio() {
       { category: "Tools", items: DEFAULT_TOOL_SKILLS },
     ],
     projects: DEFAULT_PROJECTS,
+    profileName: "Rakesh.",
+    profileGreeting: "Hello,",
+    profileJobTitle: "Visual & UI Designer",
+    profileTagline:
+      "Crafting impactful digital experiences through visual storytelling, UI design, and creative direction.",
+    profilePhotoUrl:
+      "/assets/uploads/gemini_generated_image_p3zf2jp3zf2jp3zf-019d3db5-2238-7630-af81-61df134deaf4-1.png",
+    profileResumeUrl:
+      "/assets/uploads/rakesh_resume_updated_3-019d3ac0-14ec-76b8-a0de-6d54647ee243-1.pdf",
+    profileResumeFileName: "Rakesh_Raja_Resume.pdf",
+    contactEmail: "rakeshrajamca@gmail.com",
+    contactPhone: "+91 9500333907",
+    contactLocation: "Chennai, India",
+    contactBehanceUrl: "https://www.behance.net/rocketrakedae3",
+    contactLinkedinUrl: "http://linkedin.com/in/rakesh-raja-a3792816b",
+    contactInstagramUrl:
+      "https://www.instagram.com/rakesh_raja_filmmaker?igsh=MWN0eXJsOHU0cXk5bQ%3D%3D&utm_source=qr",
+    educations: educations,
   });
 
   useEffect(() => {
     if (!fullActor || isFetching) return;
+    // refreshTick is read here to trigger re-fetch on visibility change
+    void refreshTick;
     let cancelled = false;
     async function loadDynamicData() {
       try {
-        const [backendExps, backendSkills, backendProjs] = await Promise.all([
+        const [
+          backendExps,
+          backendSkills,
+          backendProjs,
+          profileResult,
+          contactResult,
+          eduResult,
+        ] = await Promise.all([
           (
             fullActor as import("./backend.d").backendInterface
           ).getExperiences(),
           (fullActor as import("./backend.d").backendInterface).getSkills(),
           (fullActor as import("./backend.d").backendInterface).getProjects(),
+          (
+            fullActor as import("./backend.d").backendInterface
+          ).getProfileSettings(),
+          (
+            fullActor as import("./backend.d").backendInterface
+          ).getContactSettings(),
+          (fullActor as import("./backend.d").backendInterface).getEducations(),
         ]);
         if (cancelled) return;
 
         const mapped: Partial<PortfolioData> = {};
 
-        if (backendExps.length >= DEFAULT_EXPERIENCES.length) {
+        if (backendExps.length > 0) {
           mapped.experiences = backendExps
             .slice()
             .sort(
@@ -2366,18 +2478,78 @@ function Portfolio() {
             });
         }
 
+        // Map profile settings
+        const profileArr = Array.isArray(profileResult)
+          ? profileResult
+          : profileResult
+            ? [profileResult]
+            : [];
+        if (profileArr.length > 0 && profileArr[0]) {
+          const ps = profileArr[0] as ProfileSettings;
+          mapped.profileName = ps.name || mapped.profileName;
+          mapped.profileGreeting = ps.greeting || mapped.profileGreeting;
+          mapped.profileJobTitle = ps.jobTitle || mapped.profileJobTitle;
+          mapped.profileTagline = ps.tagline || mapped.profileTagline;
+          mapped.profilePhotoUrl = ps.profilePhotoUrl || mapped.profilePhotoUrl;
+          mapped.profileResumeUrl = ps.resumeUrl || mapped.profileResumeUrl;
+          mapped.profileResumeFileName =
+            ps.resumeFileName || mapped.profileResumeFileName;
+        }
+
+        // Map contact settings
+        const contactArr = Array.isArray(contactResult)
+          ? contactResult
+          : contactResult
+            ? [contactResult]
+            : [];
+        if (contactArr.length > 0 && contactArr[0]) {
+          const cs = contactArr[0] as ContactSettings;
+          mapped.contactEmail = cs.email || mapped.contactEmail;
+          mapped.contactPhone = cs.phone || mapped.contactPhone;
+          mapped.contactLocation = cs.location || mapped.contactLocation;
+          mapped.contactBehanceUrl = cs.behanceUrl || mapped.contactBehanceUrl;
+          mapped.contactLinkedinUrl =
+            cs.linkedinUrl || mapped.contactLinkedinUrl;
+          mapped.contactInstagramUrl =
+            cs.instagramUrl || mapped.contactInstagramUrl;
+        }
+
+        // Map educations
+        if ((eduResult as BackendEducation[]).length > 0) {
+          mapped.educations = (eduResult as BackendEducation[])
+            .slice()
+            .sort(
+              (a: BackendEducation, b: BackendEducation) =>
+                Number(a.sortOrder) - Number(b.sortOrder),
+            )
+            .map((e: BackendEducation) => ({
+              degree: e.degree,
+              college: e.college,
+              year: e.year,
+            }));
+        }
+
         if (Object.keys(mapped).length > 0) {
           setPortfolioData((prev) => ({ ...prev, ...mapped }));
         }
-      } catch {
-        // silently fall back to defaults
+      } catch (err) {
+        console.error(
+          "Portfolio: failed to load backend data, retrying in 3s...",
+          err,
+        );
+        // Retry once after a delay to handle transient ICP connection issues
+        setTimeout(() => {
+          if (!cancelled) loadDynamicData();
+        }, 3000);
       }
     }
     loadDynamicData();
     return () => {
       cancelled = true;
     };
-  }, [fullActor, isFetching]);
+    // refreshTick triggers a re-fetch when the tab becomes visible or the interval fires
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [fullActor, isFetching, refreshTick]);
 
   return (
     <PortfolioDataContext.Provider value={portfolioData}>

@@ -50,6 +50,33 @@ actor {
     count : Nat;
   };
 
+  type ProfileSettings = {
+    name : Text;
+    greeting : Text;
+    jobTitle : Text;
+    tagline : Text;
+    profilePhotoUrl : Text;
+    resumeUrl : Text;
+    resumeFileName : Text;
+  };
+
+  type ContactSettings = {
+    email : Text;
+    phone : Text;
+    location : Text;
+    behanceUrl : Text;
+    linkedinUrl : Text;
+    instagramUrl : Text;
+  };
+
+  type Education = {
+    id : Nat;
+    degree : Text;
+    college : Text;
+    year : Text;
+    sortOrder : Nat;
+  };
+
   // Stable storage arrays - persist across upgrades
   stable var stableReviews : [Review] = [];
   stable var stableExperiences : [Experience] = [];
@@ -61,16 +88,27 @@ actor {
   stable var stableNextProjectId : Nat = 0;
   stable var adminPin : Text = "rakesh2025";
 
+  // Profile & Contact stable storage
+  stable var stableProfile : ?ProfileSettings = null;
+  stable var stableContact : ?ContactSettings = null;
+  stable var stableEducations : [Education] = [];
+  stable var stableNextEducationId : Nat = 0;
+
   // In-memory maps rebuilt from stable storage
   let reviewStore = Map.empty<Nat, Review>();
   let experienceStore = Map.empty<Nat, Experience>();
   let skillStore = Map.empty<Nat, SkillCategory>();
   let projectStore = Map.empty<Nat, Project>();
   let visitStore = Map.empty<Text, Nat>();
+  let educationStore = Map.empty<Nat, Education>();
 
   var nextExperienceId = stableNextExperienceId;
   var nextSkillId = stableNextSkillId;
   var nextProjectId = stableNextProjectId;
+  var nextEducationId = stableNextEducationId;
+
+  var profileSettings : ?ProfileSettings = stableProfile;
+  var contactSettings : ?ContactSettings = stableContact;
 
   // Restore from stable storage on upgrade
   do {
@@ -79,6 +117,7 @@ actor {
     for (s in stableSkills.vals()) { skillStore.add(s.id, s) };
     for (p in stableProjects.vals()) { projectStore.add(p.id, p) };
     for ((date, count) in stableVisits.vals()) { visitStore.add(date, count) };
+    for (edu in stableEducations.vals()) { educationStore.add(edu.id, edu) };
   };
 
   // Seed default data if stores are empty (first deploy)
@@ -121,6 +160,15 @@ actor {
       for (p in defaults.vals()) { projectStore.add(p.id, p) };
       nextProjectId := defaults.size();
     };
+
+    if (educationStore.size() == 0) {
+      let defaults : [Education] = [
+        { id = 0; degree = "Master of Computer Applications (MCA)"; college = "FX Engineering College"; year = "2017"; sortOrder = 0 },
+        { id = 1; degree = "Bachelor of Computer Applications (BCA)"; college = "St. John's College"; year = "2014"; sortOrder = 1 },
+      ];
+      for (edu in defaults.vals()) { educationStore.add(edu.id, edu) };
+      nextEducationId := defaults.size();
+    };
   };
 
   // Save to stable storage before upgrades
@@ -133,6 +181,10 @@ actor {
     stableNextExperienceId := nextExperienceId;
     stableNextSkillId := nextSkillId;
     stableNextProjectId := nextProjectId;
+    stableProfile := profileSettings;
+    stableContact := contactSettings;
+    stableEducations := educationStore.values().toArray();
+    stableNextEducationId := nextEducationId;
   };
 
   func compareReviewsByTimeDesc(a : Review, b : Review) : Order.Order {
@@ -151,26 +203,96 @@ actor {
     Nat.compare(a.sortOrder, b.sortOrder);
   };
 
+  func compareEducations(a : Education, b : Education) : Order.Order {
+    Nat.compare(a.sortOrder, b.sortOrder);
+  };
+
   public query func verifyAdmin(pin : Text) : async Bool {
     pin == adminPin;
   };
 
   public shared func setAdminPin(oldPin : Text, newPin : Text) : async Bool {
-    if (oldPin != adminPin) {
-      return false;
-    };
-    if (newPin == "") { return false };
+    if (oldPin != adminPin) { return false };
     adminPin := newPin;
     true;
   };
 
-  public query func getReview(id : Nat) : async Review {
-    switch (reviewStore.get(id)) {
-      case (null) { Runtime.trap("Review not found") };
-      case (?r) { r };
+  // ===== PROFILE SETTINGS =====
+  public query func getProfileSettings() : async ?ProfileSettings {
+    profileSettings;
+  };
+
+  public shared func setProfileSettings(pin : Text, name : Text, greeting : Text, jobTitle : Text, tagline : Text, profilePhotoUrl : Text, resumeUrl : Text, resumeFileName : Text) : async Bool {
+    if (pin != adminPin) { return false };
+    profileSettings := ?{
+      name;
+      greeting;
+      jobTitle;
+      tagline;
+      profilePhotoUrl;
+      resumeUrl;
+      resumeFileName;
+    };
+    true;
+  };
+
+  // ===== CONTACT SETTINGS =====
+  public query func getContactSettings() : async ?ContactSettings {
+    contactSettings;
+  };
+
+  public shared func setContactSettings(pin : Text, email : Text, phone : Text, location : Text, behanceUrl : Text, linkedinUrl : Text, instagramUrl : Text) : async Bool {
+    if (pin != adminPin) { return false };
+    contactSettings := ?{
+      email;
+      phone;
+      location;
+      behanceUrl;
+      linkedinUrl;
+      instagramUrl;
+    };
+    true;
+  };
+
+  // ===== EDUCATION =====
+  public query func getEducations() : async [Education] {
+    educationStore.values().sort(compareEducations).toArray();
+  };
+
+  public shared ({ caller }) func addEducation(pin : Text, degree : Text, college : Text, year : Text, sortOrder : Nat) : async Nat {
+    if (pin != adminPin) { Runtime.trap("Unauthorized") };
+    let edu : Education = {
+      id = nextEducationId;
+      degree; college; year; sortOrder;
+    };
+    educationStore.add(nextEducationId, edu);
+    nextEducationId += 1;
+    edu.id;
+  };
+
+  public shared ({ caller }) func updateEducation(pin : Text, id : Nat, degree : Text, college : Text, year : Text, sortOrder : Nat) : async Bool {
+    if (pin != adminPin) { Runtime.trap("Unauthorized") };
+    switch (educationStore.get(id)) {
+      case (null) { Runtime.trap("Education not found") };
+      case (?_) {
+        educationStore.add(id, { id; degree; college; year; sortOrder });
+        true;
+      };
     };
   };
 
+  public shared ({ caller }) func deleteEducation(pin : Text, id : Nat) : async Bool {
+    if (pin != adminPin) { Runtime.trap("Unauthorized") };
+    switch (educationStore.get(id)) {
+      case (null) { Runtime.trap("Education not found") };
+      case (?_) {
+        let _ = educationStore.remove(id);
+        true;
+      };
+    };
+  };
+
+  // ===== REVIEWS =====
   public shared func submitReview(name : Text, role : Text, company : Text, reviewText : Text, rating : Nat) : async Nat {
     if (name == "") { Runtime.trap("Name cannot be empty") };
     if (reviewText == "") { Runtime.trap("Review text cannot be empty") };
