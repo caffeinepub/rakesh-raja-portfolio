@@ -1,4 +1,4 @@
-// Version: 1.0.0
+// Version: 3.0.0
 type ContactSettings__343023938 =
   {
     behanceUrl : Text;
@@ -24,10 +24,58 @@ type Experience__35903120 =
 type Internal__8484328<K, V> =
   {children : [var ?Node__46230540<K, V>]; data : Data__791452850<K, V>};
 type Leaf__809889148<K, V> = {data : Data__791452850<K, V>};
+type Map__158565046<K, V> = Map__297112838<K, V>;
+type Map__297112838<K, V> =
+  {var root : Node__46230540<K, V>; var size : Nat__490723111};
+type Map__605269027<K, V> = Map__158565046<K, V>;
 type Nat__490723111 = Nat__920180692;
 type Nat__920180692 = Nat;
 type Node__46230540<K, V> =
   {#internal : Internal__8484328<K, V>; #leaf : Leaf__809889148<K, V>};
+type OldContactSettings__294517934 =
+  {
+    behanceUrl : Text;
+    email : Text;
+    instagramUrl : Text;
+    linkedinUrl : Text;
+    location : Text;
+    phone : Text
+  };
+type OldEducation__463161221 =
+  {college : Text; degree : Text; id : Nat; sortOrder : Nat; year : Text};
+type OldExperience__658683408 =
+  {
+    company : Text;
+    description : Text;
+    id : Nat;
+    period : Text;
+    sortOrder : Nat;
+    title : Text
+  };
+type OldProfileSettings__468320568 =
+  {
+    greeting : Text;
+    jobTitle : Text;
+    name : Text;
+    profilePhotoUrl : Text;
+    resumeFileName : Text;
+    resumeUrl : Text;
+    tagline : Text
+  };
+type OldProject__561176146 =
+  {id : Nat; imageUrl : Text; sortOrder : Nat; title : Text; url : Text};
+type OldReview__1036017002 =
+  {
+    company : Text;
+    id : Nat;
+    name : Text;
+    rating : Nat;
+    reviewText : Text;
+    role : Text;
+    timestamp : Int
+  };
+type OldSkillCategory__670237683 =
+  {category : Text; id : Nat; items : [Text]; sortOrder : Nat};
 type ProfileSettings__717934101 =
   {
     greeting : Text;
@@ -52,7 +100,33 @@ type Review__422344017 =
   };
 type SkillCategory__641508394 =
   {category : Text; id : Text; items : [Text]; sortOrder : Nat};
-actor {
+actor ({
+  in var adminPin : Text;
+  in var contactSettings : ?OldContactSettings__294517934;
+  in educationStore : Map__605269027<Nat, OldEducation__463161221>;
+  in experienceStore : Map__605269027<Nat, OldExperience__658683408>;
+  in var nextEducationId : Nat;
+  in var nextExperienceId : Nat;
+  in var nextProjectId : Nat;
+  in var nextSkillId : Nat;
+  in var profileSettings : ?OldProfileSettings__468320568;
+  in projectStore : Map__605269027<Nat, OldProject__561176146>;
+  in reviewStore : Map__605269027<Nat, OldReview__1036017002>;
+  in skillStore : Map__605269027<Nat, OldSkillCategory__670237683>;
+  in stableContact : ?OldContactSettings__294517934;
+  in stableEducations : [OldEducation__463161221];
+  in stableExperiences : [OldExperience__658683408];
+  in stableNextEducationId : Nat;
+  in stableNextExperienceId : Nat;
+  in stableNextProjectId : Nat;
+  in stableNextSkillId : Nat;
+  in stableProfile : ?OldProfileSettings__468320568;
+  in stableProjects : [OldProject__561176146];
+  in stableReviews : [OldReview__1036017002];
+  in stableSkills : [OldSkillCategory__670237683];
+  in stableVisits : [(Text, Nat)];
+  in visitStore : Map__605269027<Text, Nat>
+}, {
   stable var adminPin : Text;
   stable var contactSettings : ?ContactSettings__343023938;
   stable educationStore :
@@ -88,4 +162,4 @@ actor {
     };
   stable visitStore :
     {var root : Node__46230540<Text, Nat>; var size : Nat__490723111}
-};
+}) ;

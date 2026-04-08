@@ -5,9 +5,9 @@ import Text "mo:core/Text";
 import Time "mo:core/Time";
 import Order "mo:core/Order";
 import Runtime "mo:core/Runtime";
+import Migration "migration";
 
-
-
+(with migration = Migration.run)
 actor {
   // ===== TYPES =====
 

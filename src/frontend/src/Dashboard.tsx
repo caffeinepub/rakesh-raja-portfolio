@@ -556,7 +556,7 @@ export default function Dashboard() {
           company: expCompany,
           period: expPeriod,
           description: expDesc,
-          sortOrder: BigInt(0),
+          sortOrder: BigInt(experiences.length),
         });
       } else {
         await fullActor!.addExperience(currentPin, {
@@ -565,7 +565,7 @@ export default function Dashboard() {
           company: expCompany,
           period: expPeriod,
           description: expDesc,
-          sortOrder: BigInt(0),
+          sortOrder: BigInt(experiences.length + 1),
         });
       }
       cancelExpForm();
