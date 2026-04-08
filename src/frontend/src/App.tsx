@@ -19,6 +19,7 @@ import {
   useState,
 } from "react";
 import type {
+  backendInterface as BackendActor,
   Education as BackendEducation,
   Experience as BackendExperience,
   Project as BackendProject,
@@ -1688,9 +1689,9 @@ function loadReviewsFromCache(): Review[] {
     const raw = localStorage.getItem(REVIEWS_CACHE_KEY);
     if (!raw) return [];
     const parsed = JSON.parse(raw);
-    return parsed.map((r: any) => ({
+    return parsed.map((r: Review) => ({
       ...r,
-      id: BigInt(r.id),
+      id: String(r.id),
       rating: BigInt(r.rating),
       timestamp: BigInt(r.timestamp),
     }));
@@ -1701,6 +1702,7 @@ function loadReviewsFromCache(): Review[] {
 
 function ReviewsSection() {
   const { actor } = useActor();
+  const typedActor = actor as unknown as BackendActor | null;
   const [reviews, setReviews] = useState<Review[]>([]);
   const [loadingReviews, setLoadingReviews] = useState(true);
 
@@ -1715,9 +1717,9 @@ function ReviewsSection() {
   const [error, setError] = useState("");
 
   const fetchReviews = useCallback(async () => {
-    if (!actor) return;
+    if (!typedActor) return;
     try {
-      const data = await actor.getReviews();
+      const data = await typedActor.getReviews();
       const sorted = [...data].sort(
         (a, b) => Number(b.timestamp) - Number(a.timestamp),
       );
@@ -1742,7 +1744,7 @@ function ReviewsSection() {
     } finally {
       setLoadingReviews(false);
     }
-  }, [actor]);
+  }, [typedActor]);
 
   useEffect(() => {
     const cached = loadReviewsFromCache();
@@ -1758,7 +1760,7 @@ function ReviewsSection() {
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!actor) return;
+    if (!typedActor) return;
     if (!name.trim() || !reviewText.trim()) {
       setError("Name and review text are required.");
       return;
@@ -1766,13 +1768,15 @@ function ReviewsSection() {
     setError("");
     setSubmitting(true);
     try {
-      await actor.submitReview(
-        name.trim(),
-        role.trim(),
-        company.trim(),
-        reviewText.trim(),
-        BigInt(rating),
-      );
+      await typedActor.submitReview({
+        id: "",
+        name: name.trim(),
+        role: role.trim(),
+        company: company.trim(),
+        reviewText: reviewText.trim(),
+        rating: BigInt(rating),
+        timestamp: BigInt(0),
+      });
       setName("");
       setRole("");
       setCompany("");
@@ -1969,7 +1973,7 @@ function ReviewsSection() {
 
             <button
               type="submit"
-              disabled={submitting || !actor}
+              disabled={submitting || !typedActor}
               className="inline-flex items-center gap-2 px-7 py-3 rounded-full font-body font-semibold text-sm uppercase tracking-wider transition-all duration-200 hover:opacity-90 disabled:opacity-50 disabled:cursor-not-allowed"
               style={{
                 background: "var(--color-blue)",
@@ -2323,9 +2327,7 @@ export default function App() {
 function Portfolio() {
   useScrollReveal();
   const { actor, isFetching } = useActor();
-  const fullActor = actor as unknown as
-    | import("./backend.d").backendInterface
-    | null;
+  const fullActor = actor as unknown as BackendActor | null;
 
   // Refresh data when tab becomes visible (e.g. after making dashboard changes)
   const [refreshTick, setRefreshTick] = useState(0);
@@ -2400,38 +2402,20 @@ function Portfolio() {
 
   useEffect(() => {
     if (!fullActor || isFetching) return;
-    // refreshTick is read here to trigger re-fetch on visibility change
+    // refreshTick is read here to trigger re-fetch on visibility change or broadcast
     void refreshTick;
     let cancelled = false;
     async function loadDynamicData() {
       try {
-        const [
-          backendExps,
-          backendSkills,
-          backendProjs,
-          profileResult,
-          contactResult,
-          eduResult,
-        ] = await Promise.all([
-          (
-            fullActor as import("./backend.d").backendInterface
-          ).getExperiences(),
-          (fullActor as import("./backend.d").backendInterface).getSkills(),
-          (fullActor as import("./backend.d").backendInterface).getProjects(),
-          (
-            fullActor as import("./backend.d").backendInterface
-          ).getProfileSettings(),
-          (
-            fullActor as import("./backend.d").backendInterface
-          ).getContactSettings(),
-          (fullActor as import("./backend.d").backendInterface).getEducations(),
-        ]);
+        // Use getAllData() — one call fetches everything from the backend
+        const data = await (fullActor as BackendActor).getAllData();
         if (cancelled) return;
 
         const mapped: Partial<PortfolioData> = {};
 
-        if (backendExps.length > 0) {
-          mapped.experiences = backendExps
+        // Experiences
+        if (data.experiences.length > 0) {
+          mapped.experiences = data.experiences
             .slice()
             .sort(
               (a: BackendExperience, b: BackendExperience) =>
@@ -2445,17 +2429,17 @@ function Portfolio() {
             }));
         }
 
-        if (backendSkills.length > 0) {
-          const designCat = backendSkills.find((s: SkillCategory) =>
+        // Skills
+        if (data.skills.length > 0) {
+          const designCat = data.skills.find((s: SkillCategory) =>
             s.category.toLowerCase().includes("design"),
           );
-          const toolCat = backendSkills.find((s: SkillCategory) =>
+          const toolCat = data.skills.find((s: SkillCategory) =>
             s.category.toLowerCase().includes("tool"),
           );
           if (designCat) mapped.designSkills = designCat.items;
           if (toolCat) mapped.toolSkills = toolCat.items;
-          // Store ALL skill categories so SkillsSection can render them all
-          mapped.skillCategories = backendSkills
+          mapped.skillCategories = data.skills
             .slice()
             .sort(
               (a: SkillCategory, b: SkillCategory) =>
@@ -2467,21 +2451,21 @@ function Portfolio() {
             }));
         }
 
-        if (backendProjs.length > 0) {
+        // Projects
+        if (data.projects.length > 0) {
           const accentColors = [
             "linear-gradient(90deg, #1E7BFF, #0D5ECC)",
             "linear-gradient(90deg, #1FD1A0, #0DA87E)",
             "linear-gradient(90deg, #C8A35A, #E8C87A)",
             "linear-gradient(90deg, #F97316, #EA580C)",
           ];
-          mapped.projects = backendProjs
+          mapped.projects = data.projects
             .slice()
             .sort(
               (a: BackendProject, b: BackendProject) =>
                 Number(a.sortOrder) - Number(b.sortOrder),
             )
             .map((p: BackendProject, idx: number) => {
-              // Try to find matching default project to preserve its metadata
               const defaultMatch = DEFAULT_PROJECTS.find(
                 (d) => d.title === p.title || d.link === p.url,
               );
@@ -2499,45 +2483,33 @@ function Portfolio() {
             });
         }
 
-        // Map profile settings
-        const profileArr = Array.isArray(profileResult)
-          ? profileResult
-          : profileResult
-            ? [profileResult]
-            : [];
-        if (profileArr.length > 0 && profileArr[0]) {
-          const ps = profileArr[0] as ProfileSettings;
-          mapped.profileName = ps.name || mapped.profileName;
-          mapped.profileGreeting = ps.greeting || mapped.profileGreeting;
-          mapped.profileJobTitle = ps.jobTitle || mapped.profileJobTitle;
-          mapped.profileTagline = ps.tagline || mapped.profileTagline;
-          mapped.profilePhotoUrl = ps.profilePhotoUrl || mapped.profilePhotoUrl;
-          mapped.profileResumeUrl = ps.resumeUrl || mapped.profileResumeUrl;
-          mapped.profileResumeFileName =
-            ps.resumeFileName || mapped.profileResumeFileName;
+        // Profile settings
+        if (data.profile) {
+          const ps = data.profile as ProfileSettings;
+          if (ps.name) mapped.profileName = ps.name;
+          if (ps.greeting) mapped.profileGreeting = ps.greeting;
+          if (ps.jobTitle) mapped.profileJobTitle = ps.jobTitle;
+          if (ps.tagline) mapped.profileTagline = ps.tagline;
+          if (ps.profilePhotoUrl) mapped.profilePhotoUrl = ps.profilePhotoUrl;
+          if (ps.resumeUrl) mapped.profileResumeUrl = ps.resumeUrl;
+          if (ps.resumeFileName)
+            mapped.profileResumeFileName = ps.resumeFileName;
         }
 
-        // Map contact settings
-        const contactArr = Array.isArray(contactResult)
-          ? contactResult
-          : contactResult
-            ? [contactResult]
-            : [];
-        if (contactArr.length > 0 && contactArr[0]) {
-          const cs = contactArr[0] as ContactSettings;
-          mapped.contactEmail = cs.email || mapped.contactEmail;
-          mapped.contactPhone = cs.phone || mapped.contactPhone;
-          mapped.contactLocation = cs.location || mapped.contactLocation;
-          mapped.contactBehanceUrl = cs.behanceUrl || mapped.contactBehanceUrl;
-          mapped.contactLinkedinUrl =
-            cs.linkedinUrl || mapped.contactLinkedinUrl;
-          mapped.contactInstagramUrl =
-            cs.instagramUrl || mapped.contactInstagramUrl;
+        // Contact settings
+        if (data.contact) {
+          const cs = data.contact as ContactSettings;
+          if (cs.email) mapped.contactEmail = cs.email;
+          if (cs.phone) mapped.contactPhone = cs.phone;
+          if (cs.location) mapped.contactLocation = cs.location;
+          if (cs.behanceUrl) mapped.contactBehanceUrl = cs.behanceUrl;
+          if (cs.linkedinUrl) mapped.contactLinkedinUrl = cs.linkedinUrl;
+          if (cs.instagramUrl) mapped.contactInstagramUrl = cs.instagramUrl;
         }
 
-        // Map educations
-        if ((eduResult as BackendEducation[]).length > 0) {
-          mapped.educations = (eduResult as BackendEducation[])
+        // Educations
+        if (data.educations.length > 0) {
+          mapped.educations = data.educations
             .slice()
             .sort(
               (a: BackendEducation, b: BackendEducation) =>
@@ -2550,7 +2522,7 @@ function Portfolio() {
             }));
         }
 
-        if (Object.keys(mapped).length > 0) {
+        if (!cancelled && Object.keys(mapped).length > 0) {
           setPortfolioData((prev) => ({ ...prev, ...mapped }));
         }
       } catch (err) {
@@ -2558,7 +2530,6 @@ function Portfolio() {
           "Portfolio: failed to load backend data, retrying in 3s...",
           err,
         );
-        // Retry once after a delay to handle transient ICP connection issues
         setTimeout(() => {
           if (!cancelled) loadDynamicData();
         }, 3000);
@@ -2568,7 +2539,6 @@ function Portfolio() {
     return () => {
       cancelled = true;
     };
-    // refreshTick triggers a re-fetch when the tab becomes visible or the interval fires
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [fullActor, isFetching, refreshTick]);
 

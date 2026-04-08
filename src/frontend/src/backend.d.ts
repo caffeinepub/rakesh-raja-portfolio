@@ -7,25 +7,55 @@ export interface None {
     __kind__: "None";
 }
 export type Option<T> = Some<T> | None;
-export interface VisitRecord {
-    date: string;
-    count: bigint;
+export interface ContactSettings {
+    behanceUrl: string;
+    instagramUrl: string;
+    email: string;
+    phone: string;
+    location: string;
+    linkedinUrl: string;
+}
+export interface Experience {
+    id: string;
+    title: string;
+    period: string;
+    sortOrder: bigint;
+    description: string;
+    company: string;
+}
+export interface Education {
+    id: string;
+    sortOrder: bigint;
+    year: string;
+    degree: string;
+    college: string;
+}
+export interface AllData {
+    contact?: ContactSettings;
+    reviews: Array<Review>;
+    projects: Array<Project>;
+    educations: Array<Education>;
+    dailyVisits: Array<[string, bigint]>;
+    totalVisits: bigint;
+    experiences: Array<Experience>;
+    skills: Array<SkillCategory>;
+    profile?: ProfileSettings;
 }
 export interface SkillCategory {
-    id: bigint;
+    id: string;
     sortOrder: bigint;
     category: string;
     items: Array<string>;
 }
 export interface Project {
-    id: bigint;
+    id: string;
     url: string;
     title: string;
     sortOrder: bigint;
     imageUrl: string;
 }
 export interface Review {
-    id: bigint;
+    id: string;
     name: string;
     role: string;
     reviewText: string;
@@ -33,78 +63,44 @@ export interface Review {
     timestamp: bigint;
     rating: bigint;
 }
-export interface Experience {
-    id: bigint;
-    title: string;
-    period: string;
-    sortOrder: bigint;
-    description: string;
-    company: string;
-}
 export interface ProfileSettings {
+    tagline: string;
     name: string;
     greeting: string;
     jobTitle: string;
-    tagline: string;
     profilePhotoUrl: string;
-    resumeUrl: string;
     resumeFileName: string;
-}
-export interface ContactSettings {
-    email: string;
-    phone: string;
-    location: string;
-    behanceUrl: string;
-    linkedinUrl: string;
-    instagramUrl: string;
-}
-export interface Education {
-    id: bigint;
-    degree: string;
-    college: string;
-    year: string;
-    sortOrder: bigint;
+    resumeUrl: string;
 }
 export interface backendInterface {
-    addExperience(pin: string, title: string, company: string, period: string, description: string, sortOrder: bigint): Promise<bigint>;
-    addProject(pin: string, title: string, url: string, imageUrl: string, sortOrder: bigint): Promise<bigint>;
-    addSkillCategory(pin: string, category: string, items: Array<string>, sortOrder: bigint): Promise<bigint>;
-    deleteExperience(pin: string, id: bigint): Promise<boolean>;
-    deleteProject(pin: string, id: bigint): Promise<boolean>;
-    deleteReview(pin: string, id: bigint): Promise<boolean>;
-    deleteSkillCategory(pin: string, id: bigint): Promise<boolean>;
-    getAllData(): Promise<{
-        reviews: Array<Review>;
-        projects: Array<Project>;
-        dailyVisits: Array<VisitRecord>;
-        totalVisits: bigint;
-        experiences: Array<Experience>;
-        skills: Array<SkillCategory>;
-    }>;
-    getDailyVisits(): Promise<Array<VisitRecord>>;
+    addEducation(pin: string, edu: Education): Promise<boolean>;
+    addExperience(pin: string, exp: Experience): Promise<boolean>;
+    addProject(pin: string, proj: Project): Promise<boolean>;
+    addSkillCategory(pin: string, cat: SkillCategory): Promise<boolean>;
+    deleteEducation(pin: string, id: string): Promise<boolean>;
+    deleteExperience(pin: string, id: string): Promise<boolean>;
+    deleteProject(pin: string, id: string): Promise<boolean>;
+    deleteReview(pin: string, id: string): Promise<boolean>;
+    deleteSkillCategory(pin: string, id: string): Promise<boolean>;
+    getAllData(): Promise<AllData>;
+    getContactSettings(): Promise<ContactSettings | null>;
+    getDailyVisits(): Promise<Array<[string, bigint]>>;
+    getEducations(): Promise<Array<Education>>;
     getExperiences(): Promise<Array<Experience>>;
+    getProfileSettings(): Promise<ProfileSettings | null>;
     getProjects(): Promise<Array<Project>>;
-    getReview(id: bigint): Promise<Review>;
     getReviewCount(): Promise<bigint>;
     getReviews(): Promise<Array<Review>>;
     getSkills(): Promise<Array<SkillCategory>>;
     getTotalVisits(): Promise<bigint>;
-    recordVisit(dateStr: string): Promise<void>;
-    setAdminPin(oldPin: string, newPin: string): Promise<boolean>;
-    submitReview(name: string, role: string, company: string, reviewText: string, rating: bigint): Promise<bigint>;
-    updateExperience(pin: string, id: bigint, title: string, company: string, period: string, description: string, sortOrder: bigint): Promise<boolean>;
-    updateProject(pin: string, id: bigint, title: string, url: string, imageUrl: string, sortOrder: bigint): Promise<boolean>;
-    updateSkillCategory(pin: string, id: bigint, category: string, items: Array<string>, sortOrder: bigint): Promise<boolean>;
+    recordVisit(): Promise<void>;
+    setAdminPin(currentPin: string, newPin: string): Promise<boolean>;
+    setContactSettings(pin: string, settings: ContactSettings): Promise<boolean>;
+    setProfileSettings(pin: string, settings: ProfileSettings): Promise<boolean>;
+    submitReview(review: Review): Promise<boolean>;
+    updateEducation(pin: string, id: string, edu: Education): Promise<boolean>;
+    updateExperience(pin: string, id: string, exp: Experience): Promise<boolean>;
+    updateProject(pin: string, id: string, proj: Project): Promise<boolean>;
+    updateSkillCategory(pin: string, id: string, cat: SkillCategory): Promise<boolean>;
     verifyAdmin(pin: string): Promise<boolean>;
-    // Profile settings
-    getProfileSettings(): Promise<[] | [ProfileSettings]>;
-    setProfileSettings(pin: string, name: string, greeting: string, jobTitle: string, tagline: string, profilePhotoUrl: string, resumeUrl: string, resumeFileName: string): Promise<boolean>;
-    // Contact settings
-    getContactSettings(): Promise<[] | [ContactSettings]>;
-    setContactSettings(pin: string, email: string, phone: string, location: string, behanceUrl: string, linkedinUrl: string, instagramUrl: string): Promise<boolean>;
-    // Education
-    getEducations(): Promise<Array<Education>>;
-    addEducation(pin: string, degree: string, college: string, year: string, sortOrder: bigint): Promise<bigint>;
-    updateEducation(pin: string, id: bigint, degree: string, college: string, year: string, sortOrder: bigint): Promise<boolean>;
-    deleteEducation(pin: string, id: bigint): Promise<boolean>;
 }

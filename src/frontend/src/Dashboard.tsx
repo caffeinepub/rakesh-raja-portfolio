@@ -41,7 +41,6 @@ import type {
   backendInterface as FullBackend,
   Review,
   SkillCategory,
-  VisitRecord,
 } from "./backend.d";
 import { useActor } from "./hooks/useActor";
 
@@ -60,7 +59,7 @@ export default function Dashboard() {
 
   // Visit stats state
   const [totalVisits, setTotalVisits] = useState<bigint>(0n);
-  const [dailyVisits, setDailyVisits] = useState<VisitRecord[]>([]);
+  const [dailyVisits, setDailyVisits] = useState<[string, bigint][]>([]);
   const [statsLoading, setStatsLoading] = useState(false);
 
   // Change PIN state
@@ -75,7 +74,7 @@ export default function Dashboard() {
   const [experiences, setExperiences] = useState<BackendExperience[]>([]);
   const [expLoading, setExpLoading] = useState(false);
   const [expShowAdd, setExpShowAdd] = useState(false);
-  const [expEditId, setExpEditId] = useState<bigint | null>(null);
+  const [expEditId, setExpEditId] = useState<string | null>(null);
   const [expTitle, setExpTitle] = useState("");
   const [expCompany, setExpCompany] = useState("");
   const [expPeriod, setExpPeriod] = useState("");
@@ -89,7 +88,7 @@ export default function Dashboard() {
   const [skillCategory, setSkillCategory] = useState("");
   const [skillItems, setSkillItems] = useState("");
   const [skillSaving, setSkillSaving] = useState(false);
-  const [skillEditId, setSkillEditId] = useState<bigint | null>(null);
+  const [skillEditId, setSkillEditId] = useState<string | null>(null);
   const [skillEditCategory, setSkillEditCategory] = useState("");
   const [skillEditItems, setSkillEditItems] = useState("");
   const [skillEditSaving, setSkillEditSaving] = useState(false);
@@ -98,7 +97,7 @@ export default function Dashboard() {
   const [projects, setProjects] = useState<BackendProject[]>([]);
   const [projLoading, setProjLoading] = useState(false);
   const [projShowAdd, setProjShowAdd] = useState(false);
-  const [projEditId, setProjEditId] = useState<bigint | null>(null);
+  const [projEditId, setProjEditId] = useState<string | null>(null);
   const [projTitle, setProjTitle] = useState("");
   const [projUrl, setProjUrl] = useState("");
   const [projImageUrl, setProjImageUrl] = useState("");
@@ -148,7 +147,7 @@ export default function Dashboard() {
   const [educations, setEducations] = useState<BackendEducation[]>([]);
   const [eduLoading, setEduLoading] = useState(false);
   const [eduShowAdd, setEduShowAdd] = useState(false);
-  const [eduEditId, setEduEditId] = useState<bigint | null>(null);
+  const [eduEditId, setEduEditId] = useState<string | null>(null);
   const [eduDegree, setEduDegree] = useState("");
   const [eduCollege, setEduCollege] = useState("");
   const [eduYear, setEduYear] = useState("");
@@ -185,7 +184,7 @@ export default function Dashboard() {
         fullActor!.getDailyVisits(),
       ]);
       setTotalVisits(total);
-      const sorted = [...daily].sort((a, b) => b.date.localeCompare(a.date));
+      const sorted = [...daily].sort((a, b) => b[0].localeCompare(a[0]));
       setDailyVisits(sorted);
     } finally {
       setStatsLoading(false);
@@ -230,8 +229,8 @@ export default function Dashboard() {
     setProfileLoading(true);
     try {
       const result = await fullActor!.getProfileSettings();
-      if (result.length > 0 && result[0]) {
-        const s = result[0];
+      if (result) {
+        const s = result;
         if (s.name) setProfileName(s.name);
         if (s.greeting) setProfileGreeting(s.greeting);
         if (s.jobTitle) setProfileJobTitle(s.jobTitle);
@@ -252,8 +251,8 @@ export default function Dashboard() {
     setContactLoading(true);
     try {
       const result = await fullActor!.getContactSettings();
-      if (result.length > 0 && result[0]) {
-        const s = result[0];
+      if (result) {
+        const s = result;
         if (s.email) setContactEmail(s.email);
         if (s.phone) setContactPhone(s.phone);
         if (s.location) setContactLocation(s.location);
@@ -335,7 +334,7 @@ export default function Dashboard() {
     }
   }
 
-  async function handleDeleteReview(id: bigint) {
+  async function handleDeleteReview(id: string) {
     if (!fullActor) return;
     await fullActor!.deleteReview(currentPin, id);
     await loadReviews();
@@ -417,22 +416,21 @@ export default function Dashboard() {
     setEduSaving(true);
     try {
       if (eduEditId !== null) {
-        await fullActor!.updateEducation(
-          currentPin,
-          eduEditId,
-          eduDegree,
-          eduCollege,
-          eduYear,
-          BigInt(educations.length),
-        );
+        await fullActor!.updateEducation(currentPin, eduEditId, {
+          id: eduEditId,
+          degree: eduDegree,
+          college: eduCollege,
+          year: eduYear,
+          sortOrder: BigInt(educations.length),
+        });
       } else {
-        await fullActor!.addEducation(
-          currentPin,
-          eduDegree,
-          eduCollege,
-          eduYear,
-          BigInt(educations.length + 1),
-        );
+        await fullActor!.addEducation(currentPin, {
+          id: "",
+          degree: eduDegree,
+          college: eduCollege,
+          year: eduYear,
+          sortOrder: BigInt(educations.length + 1),
+        });
       }
       cancelEduForm();
       await loadEducations();
@@ -442,7 +440,7 @@ export default function Dashboard() {
     }
   }
 
-  async function handleDeleteEdu(id: bigint) {
+  async function handleDeleteEdu(id: string) {
     if (!fullActor) return;
     await fullActor!.deleteEducation(currentPin, id);
     await loadEducations();
@@ -459,16 +457,15 @@ export default function Dashboard() {
     setProfileSaving(true);
     setProfileMsg("");
     try {
-      const ok = await fullActor!.setProfileSettings(
-        currentPin,
-        profileName,
-        profileGreeting,
-        profileJobTitle,
-        profileTagline,
-        profilePhotoUrl,
-        profileResumeUrl,
-        profileResumeFileName,
-      );
+      const ok = await fullActor!.setProfileSettings(currentPin, {
+        name: profileName,
+        greeting: profileGreeting,
+        jobTitle: profileJobTitle,
+        tagline: profileTagline,
+        profilePhotoUrl: profilePhotoUrl,
+        resumeUrl: profileResumeUrl,
+        resumeFileName: profileResumeFileName,
+      });
       if (ok) {
         setProfileMsg("Profile saved successfully!");
         notifyPortfolioUpdate();
@@ -492,15 +489,14 @@ export default function Dashboard() {
     setContactSaving(true);
     setContactMsg("");
     try {
-      const ok = await fullActor!.setContactSettings(
-        currentPin,
-        contactEmail,
-        contactPhone,
-        contactLocation,
-        contactBehanceUrl,
-        contactLinkedinUrl,
-        contactInstagramUrl,
-      );
+      const ok = await fullActor!.setContactSettings(currentPin, {
+        email: contactEmail,
+        phone: contactPhone,
+        location: contactLocation,
+        behanceUrl: contactBehanceUrl,
+        linkedinUrl: contactLinkedinUrl,
+        instagramUrl: contactInstagramUrl,
+      });
       if (ok) {
         setContactMsg("Contact details saved successfully!");
         notifyPortfolioUpdate();
@@ -554,24 +550,23 @@ export default function Dashboard() {
     setExpSaving(true);
     try {
       if (expEditId !== null) {
-        await fullActor!.updateExperience(
-          currentPin,
-          expEditId,
-          expTitle,
-          expCompany,
-          expPeriod,
-          expDesc,
-          BigInt(experiences.length),
-        );
+        await fullActor!.updateExperience(currentPin, expEditId, {
+          id: expEditId,
+          title: expTitle,
+          company: expCompany,
+          period: expPeriod,
+          description: expDesc,
+          sortOrder: BigInt(0),
+        });
       } else {
-        await fullActor!.addExperience(
-          currentPin,
-          expTitle,
-          expCompany,
-          expPeriod,
-          expDesc,
-          BigInt(experiences.length + 1),
-        );
+        await fullActor!.addExperience(currentPin, {
+          id: "",
+          title: expTitle,
+          company: expCompany,
+          period: expPeriod,
+          description: expDesc,
+          sortOrder: BigInt(0),
+        });
       }
       cancelExpForm();
       await loadExperiences();
@@ -581,7 +576,7 @@ export default function Dashboard() {
     }
   }
 
-  async function handleDeleteExp(id: bigint) {
+  async function handleDeleteExp(id: string) {
     if (!fullActor) return;
     await fullActor!.deleteExperience(currentPin, id);
     await loadExperiences();
@@ -603,12 +598,12 @@ export default function Dashboard() {
         .split(/[,\n]/)
         .map((s) => s.trim())
         .filter(Boolean);
-      await fullActor!.addSkillCategory(
-        currentPin,
-        skillCategory,
+      await fullActor!.addSkillCategory(currentPin, {
+        id: "",
+        category: skillCategory,
         items,
-        BigInt(skills.length + 1),
-      );
+        sortOrder: BigInt(skills.length + 1),
+      });
       cancelSkillForm();
       await loadSkills();
       notifyPortfolioUpdate();
@@ -617,7 +612,7 @@ export default function Dashboard() {
     }
   }
 
-  async function handleDeleteSkill(id: bigint) {
+  async function handleDeleteSkill(id: string) {
     if (!fullActor) return;
     await fullActor!.deleteSkillCategory(currentPin, id);
     await loadSkills();
@@ -644,15 +639,12 @@ export default function Dashboard() {
         .split(/[,\n]/)
         .map((s) => s.trim())
         .filter(Boolean);
-      await (
-        fullActor as import("./backend.d").backendInterface
-      ).updateSkillCategory(
-        currentPin,
-        skill.id,
-        skillEditCategory,
+      await fullActor!.updateSkillCategory(currentPin, skill.id, {
+        id: skill.id,
+        category: skillEditCategory,
         items,
-        skill.sortOrder,
-      );
+        sortOrder: skill.sortOrder,
+      });
       cancelEditSkill();
       await loadSkills();
       notifyPortfolioUpdate();
@@ -686,22 +678,21 @@ export default function Dashboard() {
     try {
       const sortOrder = BigInt(projSortOrder || projects.length + 1);
       if (projEditId !== null) {
-        await fullActor!.updateProject(
-          currentPin,
-          projEditId,
-          projTitle,
-          projUrl,
-          projImageUrl,
+        await fullActor!.updateProject(currentPin, projEditId, {
+          id: projEditId,
+          title: projTitle,
+          url: projUrl,
+          imageUrl: projImageUrl,
           sortOrder,
-        );
+        });
       } else {
-        await fullActor!.addProject(
-          currentPin,
-          projTitle,
-          projUrl,
-          projImageUrl,
+        await fullActor!.addProject(currentPin, {
+          id: "",
+          title: projTitle,
+          url: projUrl,
+          imageUrl: projImageUrl,
           sortOrder,
-        );
+        });
       }
       cancelProjForm();
       await loadProjects();
@@ -711,7 +702,7 @@ export default function Dashboard() {
     }
   }
 
-  async function handleDeleteProj(id: bigint) {
+  async function handleDeleteProj(id: string) {
     if (!fullActor) return;
     await fullActor!.deleteProject(currentPin, id);
     await loadProjects();
@@ -1059,15 +1050,15 @@ export default function Dashboard() {
                     <TableBody>
                       {dailyVisits.map((r, i) => (
                         <TableRow
-                          key={r.date}
+                          key={r[0]}
                           className="border-zinc-800 hover:bg-zinc-800/50"
                           data-ocid={`stats.row.${i + 1}`}
                         >
                           <TableCell className="text-zinc-300">
-                            {r.date}
+                            {r[0]}
                           </TableCell>
                           <TableCell className="text-right text-violet-400 font-medium">
-                            {String(r.count)}
+                            {String(r[1])}
                           </TableCell>
                         </TableRow>
                       ))}

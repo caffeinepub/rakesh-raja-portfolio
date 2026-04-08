@@ -1,0 +1,91 @@
+// Version: 1.0.0
+type ContactSettings__343023938 =
+  {
+    behanceUrl : Text;
+    email : Text;
+    instagramUrl : Text;
+    linkedinUrl : Text;
+    location : Text;
+    phone : Text
+  };
+type Data__791452850<K, V> =
+  {var count : Nat__490723111; kvs : [var ?(K, V)]};
+type Education__773331364 =
+  {college : Text; degree : Text; id : Text; sortOrder : Nat; year : Text};
+type Experience__35903120 =
+  {
+    company : Text;
+    description : Text;
+    id : Text;
+    period : Text;
+    sortOrder : Nat;
+    title : Text
+  };
+type Internal__8484328<K, V> =
+  {children : [var ?Node__46230540<K, V>]; data : Data__791452850<K, V>};
+type Leaf__809889148<K, V> = {data : Data__791452850<K, V>};
+type Nat__490723111 = Nat__920180692;
+type Nat__920180692 = Nat;
+type Node__46230540<K, V> =
+  {#internal : Internal__8484328<K, V>; #leaf : Leaf__809889148<K, V>};
+type ProfileSettings__717934101 =
+  {
+    greeting : Text;
+    jobTitle : Text;
+    name : Text;
+    profilePhotoUrl : Text;
+    resumeFileName : Text;
+    resumeUrl : Text;
+    tagline : Text
+  };
+type Project__762223144 =
+  {id : Text; imageUrl : Text; sortOrder : Nat; title : Text; url : Text};
+type Review__422344017 =
+  {
+    company : Text;
+    id : Text;
+    name : Text;
+    rating : Nat;
+    reviewText : Text;
+    role : Text;
+    timestamp : Int
+  };
+type SkillCategory__641508394 =
+  {category : Text; id : Text; items : [Text]; sortOrder : Nat};
+actor {
+  stable var adminPin : Text;
+  stable var contactSettings : ?ContactSettings__343023938;
+  stable educationStore :
+    {
+      var root : Node__46230540<Text, Education__773331364>;
+      var size : Nat__490723111
+    };
+  stable experienceStore :
+    {
+      var root : Node__46230540<Text, Experience__35903120>;
+      var size : Nat__490723111
+    };
+  stable var nextEducationId : Nat;
+  stable var nextExperienceId : Nat;
+  stable var nextProjectId : Nat;
+  stable var nextReviewId : Nat;
+  stable var nextSkillId : Nat;
+  stable var profileSettings : ?ProfileSettings__717934101;
+  stable projectStore :
+    {
+      var root : Node__46230540<Text, Project__762223144>;
+      var size : Nat__490723111
+    };
+  stable reviewStore :
+    {
+      var root : Node__46230540<Text, Review__422344017>;
+      var size : Nat__490723111
+    };
+  stable skillStore :
+    {
+      var root : Node__46230540<Text, SkillCategory__641508394>;
+      var size : Nat__490723111
+    };
+  stable visitStore :
+    {var root : Node__46230540<Text, Nat>; var size : Nat__490723111}
+};

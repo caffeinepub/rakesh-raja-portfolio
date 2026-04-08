@@ -8,8 +8,44 @@
 
 import { IDL } from '@icp-sdk/core/candid';
 
+export const Education = IDL.Record({
+  'id' : IDL.Text,
+  'sortOrder' : IDL.Nat,
+  'year' : IDL.Text,
+  'degree' : IDL.Text,
+  'college' : IDL.Text,
+});
+export const Experience = IDL.Record({
+  'id' : IDL.Text,
+  'title' : IDL.Text,
+  'period' : IDL.Text,
+  'sortOrder' : IDL.Nat,
+  'description' : IDL.Text,
+  'company' : IDL.Text,
+});
+export const Project = IDL.Record({
+  'id' : IDL.Text,
+  'url' : IDL.Text,
+  'title' : IDL.Text,
+  'sortOrder' : IDL.Nat,
+  'imageUrl' : IDL.Text,
+});
+export const SkillCategory = IDL.Record({
+  'id' : IDL.Text,
+  'sortOrder' : IDL.Nat,
+  'category' : IDL.Text,
+  'items' : IDL.Vec(IDL.Text),
+});
+export const ContactSettings = IDL.Record({
+  'behanceUrl' : IDL.Text,
+  'instagramUrl' : IDL.Text,
+  'email' : IDL.Text,
+  'phone' : IDL.Text,
+  'location' : IDL.Text,
+  'linkedinUrl' : IDL.Text,
+});
 export const Review = IDL.Record({
-  'id' : IDL.Nat,
+  'id' : IDL.Text,
   'name' : IDL.Text,
   'role' : IDL.Text,
   'reviewText' : IDL.Text,
@@ -17,85 +53,66 @@ export const Review = IDL.Record({
   'timestamp' : IDL.Int,
   'rating' : IDL.Nat,
 });
-export const Project = IDL.Record({
-  'id' : IDL.Nat,
-  'url' : IDL.Text,
-  'title' : IDL.Text,
-  'sortOrder' : IDL.Nat,
-  'imageUrl' : IDL.Text,
+export const ProfileSettings = IDL.Record({
+  'tagline' : IDL.Text,
+  'name' : IDL.Text,
+  'greeting' : IDL.Text,
+  'jobTitle' : IDL.Text,
+  'profilePhotoUrl' : IDL.Text,
+  'resumeFileName' : IDL.Text,
+  'resumeUrl' : IDL.Text,
 });
-export const VisitRecord = IDL.Record({ 'date' : IDL.Text, 'count' : IDL.Nat });
-export const Experience = IDL.Record({
-  'id' : IDL.Nat,
-  'title' : IDL.Text,
-  'period' : IDL.Text,
-  'sortOrder' : IDL.Nat,
-  'description' : IDL.Text,
-  'company' : IDL.Text,
-});
-export const SkillCategory = IDL.Record({
-  'id' : IDL.Nat,
-  'sortOrder' : IDL.Nat,
-  'category' : IDL.Text,
-  'items' : IDL.Vec(IDL.Text),
+export const AllData = IDL.Record({
+  'contact' : IDL.Opt(ContactSettings),
+  'reviews' : IDL.Vec(Review),
+  'projects' : IDL.Vec(Project),
+  'educations' : IDL.Vec(Education),
+  'dailyVisits' : IDL.Vec(IDL.Tuple(IDL.Text, IDL.Nat)),
+  'totalVisits' : IDL.Nat,
+  'experiences' : IDL.Vec(Experience),
+  'skills' : IDL.Vec(SkillCategory),
+  'profile' : IDL.Opt(ProfileSettings),
 });
 
 export const idlService = IDL.Service({
-  'addExperience' : IDL.Func(
-      [IDL.Text, IDL.Text, IDL.Text, IDL.Text, IDL.Text, IDL.Nat],
-      [IDL.Nat],
+  'addEducation' : IDL.Func([IDL.Text, Education], [IDL.Bool], []),
+  'addExperience' : IDL.Func([IDL.Text, Experience], [IDL.Bool], []),
+  'addProject' : IDL.Func([IDL.Text, Project], [IDL.Bool], []),
+  'addSkillCategory' : IDL.Func([IDL.Text, SkillCategory], [IDL.Bool], []),
+  'deleteEducation' : IDL.Func([IDL.Text, IDL.Text], [IDL.Bool], []),
+  'deleteExperience' : IDL.Func([IDL.Text, IDL.Text], [IDL.Bool], []),
+  'deleteProject' : IDL.Func([IDL.Text, IDL.Text], [IDL.Bool], []),
+  'deleteReview' : IDL.Func([IDL.Text, IDL.Text], [IDL.Bool], []),
+  'deleteSkillCategory' : IDL.Func([IDL.Text, IDL.Text], [IDL.Bool], []),
+  'getAllData' : IDL.Func([], [AllData], ['query']),
+  'getContactSettings' : IDL.Func([], [IDL.Opt(ContactSettings)], ['query']),
+  'getDailyVisits' : IDL.Func(
       [],
-    ),
-  'addProject' : IDL.Func(
-      [IDL.Text, IDL.Text, IDL.Text, IDL.Text, IDL.Nat],
-      [IDL.Nat],
-      [],
-    ),
-  'addSkillCategory' : IDL.Func(
-      [IDL.Text, IDL.Text, IDL.Vec(IDL.Text), IDL.Nat],
-      [IDL.Nat],
-      [],
-    ),
-  'deleteExperience' : IDL.Func([IDL.Text, IDL.Nat], [IDL.Bool], []),
-  'deleteProject' : IDL.Func([IDL.Text, IDL.Nat], [IDL.Bool], []),
-  'deleteReview' : IDL.Func([IDL.Text, IDL.Nat], [IDL.Bool], []),
-  'deleteSkillCategory' : IDL.Func([IDL.Text, IDL.Nat], [IDL.Bool], []),
-  'getAllData' : IDL.Func(
-      [],
-      [
-        IDL.Record({
-          'reviews' : IDL.Vec(Review),
-          'projects' : IDL.Vec(Project),
-          'dailyVisits' : IDL.Vec(VisitRecord),
-          'totalVisits' : IDL.Nat,
-          'experiences' : IDL.Vec(Experience),
-          'skills' : IDL.Vec(SkillCategory),
-        }),
-      ],
+      [IDL.Vec(IDL.Tuple(IDL.Text, IDL.Nat))],
       ['query'],
     ),
-  'getDailyVisits' : IDL.Func([], [IDL.Vec(VisitRecord)], ['query']),
+  'getEducations' : IDL.Func([], [IDL.Vec(Education)], ['query']),
   'getExperiences' : IDL.Func([], [IDL.Vec(Experience)], ['query']),
+  'getProfileSettings' : IDL.Func([], [IDL.Opt(ProfileSettings)], ['query']),
   'getProjects' : IDL.Func([], [IDL.Vec(Project)], ['query']),
-  'getReview' : IDL.Func([IDL.Nat], [Review], ['query']),
   'getReviewCount' : IDL.Func([], [IDL.Nat], ['query']),
   'getReviews' : IDL.Func([], [IDL.Vec(Review)], ['query']),
   'getSkills' : IDL.Func([], [IDL.Vec(SkillCategory)], ['query']),
   'getTotalVisits' : IDL.Func([], [IDL.Nat], ['query']),
-  'recordVisit' : IDL.Func([IDL.Text], [], []),
+  'recordVisit' : IDL.Func([], [], []),
   'setAdminPin' : IDL.Func([IDL.Text, IDL.Text], [IDL.Bool], []),
-  'submitReview' : IDL.Func(
-      [IDL.Text, IDL.Text, IDL.Text, IDL.Text, IDL.Nat],
-      [IDL.Nat],
-      [],
-    ),
+  'setContactSettings' : IDL.Func([IDL.Text, ContactSettings], [IDL.Bool], []),
+  'setProfileSettings' : IDL.Func([IDL.Text, ProfileSettings], [IDL.Bool], []),
+  'submitReview' : IDL.Func([Review], [IDL.Bool], []),
+  'updateEducation' : IDL.Func([IDL.Text, IDL.Text, Education], [IDL.Bool], []),
   'updateExperience' : IDL.Func(
-      [IDL.Text, IDL.Nat, IDL.Text, IDL.Text, IDL.Text, IDL.Text, IDL.Nat],
+      [IDL.Text, IDL.Text, Experience],
       [IDL.Bool],
       [],
     ),
-  'updateProject' : IDL.Func(
-      [IDL.Text, IDL.Nat, IDL.Text, IDL.Text, IDL.Text, IDL.Nat],
+  'updateProject' : IDL.Func([IDL.Text, IDL.Text, Project], [IDL.Bool], []),
+  'updateSkillCategory' : IDL.Func(
+      [IDL.Text, IDL.Text, SkillCategory],
       [IDL.Bool],
       [],
     ),
@@ -105,8 +122,44 @@ export const idlService = IDL.Service({
 export const idlInitArgs = [];
 
 export const idlFactory = ({ IDL }) => {
+  const Education = IDL.Record({
+    'id' : IDL.Text,
+    'sortOrder' : IDL.Nat,
+    'year' : IDL.Text,
+    'degree' : IDL.Text,
+    'college' : IDL.Text,
+  });
+  const Experience = IDL.Record({
+    'id' : IDL.Text,
+    'title' : IDL.Text,
+    'period' : IDL.Text,
+    'sortOrder' : IDL.Nat,
+    'description' : IDL.Text,
+    'company' : IDL.Text,
+  });
+  const Project = IDL.Record({
+    'id' : IDL.Text,
+    'url' : IDL.Text,
+    'title' : IDL.Text,
+    'sortOrder' : IDL.Nat,
+    'imageUrl' : IDL.Text,
+  });
+  const SkillCategory = IDL.Record({
+    'id' : IDL.Text,
+    'sortOrder' : IDL.Nat,
+    'category' : IDL.Text,
+    'items' : IDL.Vec(IDL.Text),
+  });
+  const ContactSettings = IDL.Record({
+    'behanceUrl' : IDL.Text,
+    'instagramUrl' : IDL.Text,
+    'email' : IDL.Text,
+    'phone' : IDL.Text,
+    'location' : IDL.Text,
+    'linkedinUrl' : IDL.Text,
+  });
   const Review = IDL.Record({
-    'id' : IDL.Nat,
+    'id' : IDL.Text,
     'name' : IDL.Text,
     'role' : IDL.Text,
     'reviewText' : IDL.Text,
@@ -114,85 +167,78 @@ export const idlFactory = ({ IDL }) => {
     'timestamp' : IDL.Int,
     'rating' : IDL.Nat,
   });
-  const Project = IDL.Record({
-    'id' : IDL.Nat,
-    'url' : IDL.Text,
-    'title' : IDL.Text,
-    'sortOrder' : IDL.Nat,
-    'imageUrl' : IDL.Text,
+  const ProfileSettings = IDL.Record({
+    'tagline' : IDL.Text,
+    'name' : IDL.Text,
+    'greeting' : IDL.Text,
+    'jobTitle' : IDL.Text,
+    'profilePhotoUrl' : IDL.Text,
+    'resumeFileName' : IDL.Text,
+    'resumeUrl' : IDL.Text,
   });
-  const VisitRecord = IDL.Record({ 'date' : IDL.Text, 'count' : IDL.Nat });
-  const Experience = IDL.Record({
-    'id' : IDL.Nat,
-    'title' : IDL.Text,
-    'period' : IDL.Text,
-    'sortOrder' : IDL.Nat,
-    'description' : IDL.Text,
-    'company' : IDL.Text,
-  });
-  const SkillCategory = IDL.Record({
-    'id' : IDL.Nat,
-    'sortOrder' : IDL.Nat,
-    'category' : IDL.Text,
-    'items' : IDL.Vec(IDL.Text),
+  const AllData = IDL.Record({
+    'contact' : IDL.Opt(ContactSettings),
+    'reviews' : IDL.Vec(Review),
+    'projects' : IDL.Vec(Project),
+    'educations' : IDL.Vec(Education),
+    'dailyVisits' : IDL.Vec(IDL.Tuple(IDL.Text, IDL.Nat)),
+    'totalVisits' : IDL.Nat,
+    'experiences' : IDL.Vec(Experience),
+    'skills' : IDL.Vec(SkillCategory),
+    'profile' : IDL.Opt(ProfileSettings),
   });
   
   return IDL.Service({
-    'addExperience' : IDL.Func(
-        [IDL.Text, IDL.Text, IDL.Text, IDL.Text, IDL.Text, IDL.Nat],
-        [IDL.Nat],
+    'addEducation' : IDL.Func([IDL.Text, Education], [IDL.Bool], []),
+    'addExperience' : IDL.Func([IDL.Text, Experience], [IDL.Bool], []),
+    'addProject' : IDL.Func([IDL.Text, Project], [IDL.Bool], []),
+    'addSkillCategory' : IDL.Func([IDL.Text, SkillCategory], [IDL.Bool], []),
+    'deleteEducation' : IDL.Func([IDL.Text, IDL.Text], [IDL.Bool], []),
+    'deleteExperience' : IDL.Func([IDL.Text, IDL.Text], [IDL.Bool], []),
+    'deleteProject' : IDL.Func([IDL.Text, IDL.Text], [IDL.Bool], []),
+    'deleteReview' : IDL.Func([IDL.Text, IDL.Text], [IDL.Bool], []),
+    'deleteSkillCategory' : IDL.Func([IDL.Text, IDL.Text], [IDL.Bool], []),
+    'getAllData' : IDL.Func([], [AllData], ['query']),
+    'getContactSettings' : IDL.Func([], [IDL.Opt(ContactSettings)], ['query']),
+    'getDailyVisits' : IDL.Func(
         [],
-      ),
-    'addProject' : IDL.Func(
-        [IDL.Text, IDL.Text, IDL.Text, IDL.Text, IDL.Nat],
-        [IDL.Nat],
-        [],
-      ),
-    'addSkillCategory' : IDL.Func(
-        [IDL.Text, IDL.Text, IDL.Vec(IDL.Text), IDL.Nat],
-        [IDL.Nat],
-        [],
-      ),
-    'deleteExperience' : IDL.Func([IDL.Text, IDL.Nat], [IDL.Bool], []),
-    'deleteProject' : IDL.Func([IDL.Text, IDL.Nat], [IDL.Bool], []),
-    'deleteReview' : IDL.Func([IDL.Text, IDL.Nat], [IDL.Bool], []),
-    'deleteSkillCategory' : IDL.Func([IDL.Text, IDL.Nat], [IDL.Bool], []),
-    'getAllData' : IDL.Func(
-        [],
-        [
-          IDL.Record({
-            'reviews' : IDL.Vec(Review),
-            'projects' : IDL.Vec(Project),
-            'dailyVisits' : IDL.Vec(VisitRecord),
-            'totalVisits' : IDL.Nat,
-            'experiences' : IDL.Vec(Experience),
-            'skills' : IDL.Vec(SkillCategory),
-          }),
-        ],
+        [IDL.Vec(IDL.Tuple(IDL.Text, IDL.Nat))],
         ['query'],
       ),
-    'getDailyVisits' : IDL.Func([], [IDL.Vec(VisitRecord)], ['query']),
+    'getEducations' : IDL.Func([], [IDL.Vec(Education)], ['query']),
     'getExperiences' : IDL.Func([], [IDL.Vec(Experience)], ['query']),
+    'getProfileSettings' : IDL.Func([], [IDL.Opt(ProfileSettings)], ['query']),
     'getProjects' : IDL.Func([], [IDL.Vec(Project)], ['query']),
-    'getReview' : IDL.Func([IDL.Nat], [Review], ['query']),
     'getReviewCount' : IDL.Func([], [IDL.Nat], ['query']),
     'getReviews' : IDL.Func([], [IDL.Vec(Review)], ['query']),
     'getSkills' : IDL.Func([], [IDL.Vec(SkillCategory)], ['query']),
     'getTotalVisits' : IDL.Func([], [IDL.Nat], ['query']),
-    'recordVisit' : IDL.Func([IDL.Text], [], []),
+    'recordVisit' : IDL.Func([], [], []),
     'setAdminPin' : IDL.Func([IDL.Text, IDL.Text], [IDL.Bool], []),
-    'submitReview' : IDL.Func(
-        [IDL.Text, IDL.Text, IDL.Text, IDL.Text, IDL.Nat],
-        [IDL.Nat],
-        [],
-      ),
-    'updateExperience' : IDL.Func(
-        [IDL.Text, IDL.Nat, IDL.Text, IDL.Text, IDL.Text, IDL.Text, IDL.Nat],
+    'setContactSettings' : IDL.Func(
+        [IDL.Text, ContactSettings],
         [IDL.Bool],
         [],
       ),
-    'updateProject' : IDL.Func(
-        [IDL.Text, IDL.Nat, IDL.Text, IDL.Text, IDL.Text, IDL.Nat],
+    'setProfileSettings' : IDL.Func(
+        [IDL.Text, ProfileSettings],
+        [IDL.Bool],
+        [],
+      ),
+    'submitReview' : IDL.Func([Review], [IDL.Bool], []),
+    'updateEducation' : IDL.Func(
+        [IDL.Text, IDL.Text, Education],
+        [IDL.Bool],
+        [],
+      ),
+    'updateExperience' : IDL.Func(
+        [IDL.Text, IDL.Text, Experience],
+        [IDL.Bool],
+        [],
+      ),
+    'updateProject' : IDL.Func([IDL.Text, IDL.Text, Project], [IDL.Bool], []),
+    'updateSkillCategory' : IDL.Func(
+        [IDL.Text, IDL.Text, SkillCategory],
         [IDL.Bool],
         [],
       ),

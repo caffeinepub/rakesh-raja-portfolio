@@ -1,0 +1,111 @@
+type SkillCategory = 
+ record {
+   category: text;
+   id: text;
+   items: vec text;
+   sortOrder: nat;
+ };
+type Review = 
+ record {
+   company: text;
+   id: text;
+   name: text;
+   rating: nat;
+   reviewText: text;
+   role: text;
+   timestamp: int;
+ };
+type Project = 
+ record {
+   id: text;
+   imageUrl: text;
+   sortOrder: nat;
+   title: text;
+   url: text;
+ };
+type ProfileSettings = 
+ record {
+   greeting: text;
+   jobTitle: text;
+   name: text;
+   profilePhotoUrl: text;
+   resumeFileName: text;
+   resumeUrl: text;
+   tagline: text;
+ };
+type Experience = 
+ record {
+   company: text;
+   description: text;
+   id: text;
+   period: text;
+   sortOrder: nat;
+   title: text;
+ };
+type Education = 
+ record {
+   college: text;
+   degree: text;
+   id: text;
+   sortOrder: nat;
+   year: text;
+ };
+type ContactSettings = 
+ record {
+   behanceUrl: text;
+   email: text;
+   instagramUrl: text;
+   linkedinUrl: text;
+   location: text;
+   phone: text;
+ };
+type AllData = 
+ record {
+   contact: opt ContactSettings;
+   dailyVisits: vec record {
+                      text;
+                      nat;
+                    };
+   educations: vec Education;
+   experiences: vec Experience;
+   profile: opt ProfileSettings;
+   projects: vec Project;
+   reviews: vec Review;
+   skills: vec SkillCategory;
+   totalVisits: nat;
+ };
+service : {
+  addEducation: (pin: text, edu: Education) -> (bool);
+  addExperience: (pin: text, exp: Experience) -> (bool);
+  addProject: (pin: text, proj: Project) -> (bool);
+  addSkillCategory: (pin: text, cat: SkillCategory) -> (bool);
+  deleteEducation: (pin: text, id: text) -> (bool);
+  deleteExperience: (pin: text, id: text) -> (bool);
+  deleteProject: (pin: text, id: text) -> (bool);
+  deleteReview: (pin: text, id: text) -> (bool);
+  deleteSkillCategory: (pin: text, id: text) -> (bool);
+  getAllData: () -> (AllData) query;
+  getContactSettings: () -> (opt ContactSettings) query;
+  getDailyVisits: () -> (vec record {
+                               text;
+                               nat;
+                             }) query;
+  getEducations: () -> (vec Education) query;
+  getExperiences: () -> (vec Experience) query;
+  getProfileSettings: () -> (opt ProfileSettings) query;
+  getProjects: () -> (vec Project) query;
+  getReviewCount: () -> (nat) query;
+  getReviews: () -> (vec Review) query;
+  getSkills: () -> (vec SkillCategory) query;
+  getTotalVisits: () -> (nat) query;
+  recordVisit: () -> ();
+  setAdminPin: (currentPin: text, newPin: text) -> (bool);
+  setContactSettings: (pin: text, settings: ContactSettings) -> (bool);
+  setProfileSettings: (pin: text, settings: ProfileSettings) -> (bool);
+  submitReview: (review: Review) -> (bool);
+  updateEducation: (pin: text, id: text, edu: Education) -> (bool);
+  updateExperience: (pin: text, id: text, exp: Experience) -> (bool);
+  updateProject: (pin: text, id: text, proj: Project) -> (bool);
+  updateSkillCategory: (pin: text, id: text, cat: SkillCategory) -> (bool);
+  verifyAdmin: (pin: text) -> (bool) query;
+}

@@ -89,25 +89,55 @@ export class ExternalBlob {
         return this;
     }
 }
-export interface VisitRecord {
-    date: string;
-    count: bigint;
+export interface ContactSettings {
+    behanceUrl: string;
+    instagramUrl: string;
+    email: string;
+    phone: string;
+    location: string;
+    linkedinUrl: string;
+}
+export interface Experience {
+    id: string;
+    title: string;
+    period: string;
+    sortOrder: bigint;
+    description: string;
+    company: string;
+}
+export interface Education {
+    id: string;
+    sortOrder: bigint;
+    year: string;
+    degree: string;
+    college: string;
+}
+export interface AllData {
+    contact?: ContactSettings;
+    reviews: Array<Review>;
+    projects: Array<Project>;
+    educations: Array<Education>;
+    dailyVisits: Array<[string, bigint]>;
+    totalVisits: bigint;
+    experiences: Array<Experience>;
+    skills: Array<SkillCategory>;
+    profile?: ProfileSettings;
 }
 export interface SkillCategory {
-    id: bigint;
+    id: string;
     sortOrder: bigint;
     category: string;
     items: Array<string>;
 }
 export interface Project {
-    id: bigint;
+    id: string;
     url: string;
     title: string;
     sortOrder: bigint;
     imageUrl: string;
 }
 export interface Review {
-    id: bigint;
+    id: string;
     name: string;
     role: string;
     reviewText: string;
@@ -115,90 +145,121 @@ export interface Review {
     timestamp: bigint;
     rating: bigint;
 }
-export interface Experience {
-    id: bigint;
-    title: string;
-    period: string;
-    sortOrder: bigint;
-    description: string;
-    company: string;
+export interface ProfileSettings {
+    tagline: string;
+    name: string;
+    greeting: string;
+    jobTitle: string;
+    profilePhotoUrl: string;
+    resumeFileName: string;
+    resumeUrl: string;
 }
 export interface backendInterface {
-    addExperience(pin: string, title: string, company: string, period: string, description: string, sortOrder: bigint): Promise<bigint>;
-    addProject(pin: string, title: string, url: string, imageUrl: string, sortOrder: bigint): Promise<bigint>;
-    addSkillCategory(pin: string, category: string, items: Array<string>, sortOrder: bigint): Promise<bigint>;
-    deleteExperience(pin: string, id: bigint): Promise<boolean>;
-    deleteProject(pin: string, id: bigint): Promise<boolean>;
-    deleteReview(pin: string, id: bigint): Promise<boolean>;
-    deleteSkillCategory(pin: string, id: bigint): Promise<boolean>;
-    getAllData(): Promise<{
-        reviews: Array<Review>;
-        projects: Array<Project>;
-        dailyVisits: Array<VisitRecord>;
-        totalVisits: bigint;
-        experiences: Array<Experience>;
-        skills: Array<SkillCategory>;
-    }>;
-    getDailyVisits(): Promise<Array<VisitRecord>>;
+    addEducation(pin: string, edu: Education): Promise<boolean>;
+    addExperience(pin: string, exp: Experience): Promise<boolean>;
+    addProject(pin: string, proj: Project): Promise<boolean>;
+    addSkillCategory(pin: string, cat: SkillCategory): Promise<boolean>;
+    deleteEducation(pin: string, id: string): Promise<boolean>;
+    deleteExperience(pin: string, id: string): Promise<boolean>;
+    deleteProject(pin: string, id: string): Promise<boolean>;
+    deleteReview(pin: string, id: string): Promise<boolean>;
+    deleteSkillCategory(pin: string, id: string): Promise<boolean>;
+    getAllData(): Promise<AllData>;
+    getContactSettings(): Promise<ContactSettings | null>;
+    getDailyVisits(): Promise<Array<[string, bigint]>>;
+    getEducations(): Promise<Array<Education>>;
     getExperiences(): Promise<Array<Experience>>;
+    getProfileSettings(): Promise<ProfileSettings | null>;
     getProjects(): Promise<Array<Project>>;
-    getReview(id: bigint): Promise<Review>;
     getReviewCount(): Promise<bigint>;
     getReviews(): Promise<Array<Review>>;
     getSkills(): Promise<Array<SkillCategory>>;
     getTotalVisits(): Promise<bigint>;
-    recordVisit(dateStr: string): Promise<void>;
-    setAdminPin(oldPin: string, newPin: string): Promise<boolean>;
-    submitReview(name: string, role: string, company: string, reviewText: string, rating: bigint): Promise<bigint>;
-    updateExperience(pin: string, id: bigint, title: string, company: string, period: string, description: string, sortOrder: bigint): Promise<boolean>;
-    updateProject(pin: string, id: bigint, title: string, url: string, imageUrl: string, sortOrder: bigint): Promise<boolean>;
+    recordVisit(): Promise<void>;
+    setAdminPin(currentPin: string, newPin: string): Promise<boolean>;
+    setContactSettings(pin: string, settings: ContactSettings): Promise<boolean>;
+    setProfileSettings(pin: string, settings: ProfileSettings): Promise<boolean>;
+    submitReview(review: Review): Promise<boolean>;
+    updateEducation(pin: string, id: string, edu: Education): Promise<boolean>;
+    updateExperience(pin: string, id: string, exp: Experience): Promise<boolean>;
+    updateProject(pin: string, id: string, proj: Project): Promise<boolean>;
+    updateSkillCategory(pin: string, id: string, cat: SkillCategory): Promise<boolean>;
     verifyAdmin(pin: string): Promise<boolean>;
 }
+import type { AllData as _AllData, ContactSettings as _ContactSettings, Education as _Education, Experience as _Experience, ProfileSettings as _ProfileSettings, Project as _Project, Review as _Review, SkillCategory as _SkillCategory } from "./declarations/backend.did.d.ts";
 export class Backend implements backendInterface {
     constructor(private actor: ActorSubclass<_SERVICE>, private _uploadFile: (file: ExternalBlob) => Promise<Uint8Array>, private _downloadFile: (file: Uint8Array) => Promise<ExternalBlob>, private processError?: (error: unknown) => never){}
-    async addExperience(arg0: string, arg1: string, arg2: string, arg3: string, arg4: string, arg5: bigint): Promise<bigint> {
+    async addEducation(arg0: string, arg1: Education): Promise<boolean> {
         if (this.processError) {
             try {
-                const result = await this.actor.addExperience(arg0, arg1, arg2, arg3, arg4, arg5);
+                const result = await this.actor.addEducation(arg0, arg1);
                 return result;
             } catch (e) {
                 this.processError(e);
                 throw new Error("unreachable");
             }
         } else {
-            const result = await this.actor.addExperience(arg0, arg1, arg2, arg3, arg4, arg5);
+            const result = await this.actor.addEducation(arg0, arg1);
             return result;
         }
     }
-    async addProject(arg0: string, arg1: string, arg2: string, arg3: string, arg4: bigint): Promise<bigint> {
+    async addExperience(arg0: string, arg1: Experience): Promise<boolean> {
         if (this.processError) {
             try {
-                const result = await this.actor.addProject(arg0, arg1, arg2, arg3, arg4);
+                const result = await this.actor.addExperience(arg0, arg1);
                 return result;
             } catch (e) {
                 this.processError(e);
                 throw new Error("unreachable");
             }
         } else {
-            const result = await this.actor.addProject(arg0, arg1, arg2, arg3, arg4);
+            const result = await this.actor.addExperience(arg0, arg1);
             return result;
         }
     }
-    async addSkillCategory(arg0: string, arg1: string, arg2: Array<string>, arg3: bigint): Promise<bigint> {
+    async addProject(arg0: string, arg1: Project): Promise<boolean> {
         if (this.processError) {
             try {
-                const result = await this.actor.addSkillCategory(arg0, arg1, arg2, arg3);
+                const result = await this.actor.addProject(arg0, arg1);
                 return result;
             } catch (e) {
                 this.processError(e);
                 throw new Error("unreachable");
             }
         } else {
-            const result = await this.actor.addSkillCategory(arg0, arg1, arg2, arg3);
+            const result = await this.actor.addProject(arg0, arg1);
             return result;
         }
     }
-    async deleteExperience(arg0: string, arg1: bigint): Promise<boolean> {
+    async addSkillCategory(arg0: string, arg1: SkillCategory): Promise<boolean> {
+        if (this.processError) {
+            try {
+                const result = await this.actor.addSkillCategory(arg0, arg1);
+                return result;
+            } catch (e) {
+                this.processError(e);
+                throw new Error("unreachable");
+            }
+        } else {
+            const result = await this.actor.addSkillCategory(arg0, arg1);
+            return result;
+        }
+    }
+    async deleteEducation(arg0: string, arg1: string): Promise<boolean> {
+        if (this.processError) {
+            try {
+                const result = await this.actor.deleteEducation(arg0, arg1);
+                return result;
+            } catch (e) {
+                this.processError(e);
+                throw new Error("unreachable");
+            }
+        } else {
+            const result = await this.actor.deleteEducation(arg0, arg1);
+            return result;
+        }
+    }
+    async deleteExperience(arg0: string, arg1: string): Promise<boolean> {
         if (this.processError) {
             try {
                 const result = await this.actor.deleteExperience(arg0, arg1);
@@ -212,7 +273,7 @@ export class Backend implements backendInterface {
             return result;
         }
     }
-    async deleteProject(arg0: string, arg1: bigint): Promise<boolean> {
+    async deleteProject(arg0: string, arg1: string): Promise<boolean> {
         if (this.processError) {
             try {
                 const result = await this.actor.deleteProject(arg0, arg1);
@@ -226,7 +287,7 @@ export class Backend implements backendInterface {
             return result;
         }
     }
-    async deleteReview(arg0: string, arg1: bigint): Promise<boolean> {
+    async deleteReview(arg0: string, arg1: string): Promise<boolean> {
         if (this.processError) {
             try {
                 const result = await this.actor.deleteReview(arg0, arg1);
@@ -240,7 +301,7 @@ export class Backend implements backendInterface {
             return result;
         }
     }
-    async deleteSkillCategory(arg0: string, arg1: bigint): Promise<boolean> {
+    async deleteSkillCategory(arg0: string, arg1: string): Promise<boolean> {
         if (this.processError) {
             try {
                 const result = await this.actor.deleteSkillCategory(arg0, arg1);
@@ -254,28 +315,35 @@ export class Backend implements backendInterface {
             return result;
         }
     }
-    async getAllData(): Promise<{
-        reviews: Array<Review>;
-        projects: Array<Project>;
-        dailyVisits: Array<VisitRecord>;
-        totalVisits: bigint;
-        experiences: Array<Experience>;
-        skills: Array<SkillCategory>;
-    }> {
+    async getAllData(): Promise<AllData> {
         if (this.processError) {
             try {
                 const result = await this.actor.getAllData();
-                return result;
+                return from_candid_AllData_n1(this._uploadFile, this._downloadFile, result);
             } catch (e) {
                 this.processError(e);
                 throw new Error("unreachable");
             }
         } else {
             const result = await this.actor.getAllData();
-            return result;
+            return from_candid_AllData_n1(this._uploadFile, this._downloadFile, result);
         }
     }
-    async getDailyVisits(): Promise<Array<VisitRecord>> {
+    async getContactSettings(): Promise<ContactSettings | null> {
+        if (this.processError) {
+            try {
+                const result = await this.actor.getContactSettings();
+                return from_candid_opt_n3(this._uploadFile, this._downloadFile, result);
+            } catch (e) {
+                this.processError(e);
+                throw new Error("unreachable");
+            }
+        } else {
+            const result = await this.actor.getContactSettings();
+            return from_candid_opt_n3(this._uploadFile, this._downloadFile, result);
+        }
+    }
+    async getDailyVisits(): Promise<Array<[string, bigint]>> {
         if (this.processError) {
             try {
                 const result = await this.actor.getDailyVisits();
@@ -286,6 +354,20 @@ export class Backend implements backendInterface {
             }
         } else {
             const result = await this.actor.getDailyVisits();
+            return result;
+        }
+    }
+    async getEducations(): Promise<Array<Education>> {
+        if (this.processError) {
+            try {
+                const result = await this.actor.getEducations();
+                return result;
+            } catch (e) {
+                this.processError(e);
+                throw new Error("unreachable");
+            }
+        } else {
+            const result = await this.actor.getEducations();
             return result;
         }
     }
@@ -303,6 +385,20 @@ export class Backend implements backendInterface {
             return result;
         }
     }
+    async getProfileSettings(): Promise<ProfileSettings | null> {
+        if (this.processError) {
+            try {
+                const result = await this.actor.getProfileSettings();
+                return from_candid_opt_n4(this._uploadFile, this._downloadFile, result);
+            } catch (e) {
+                this.processError(e);
+                throw new Error("unreachable");
+            }
+        } else {
+            const result = await this.actor.getProfileSettings();
+            return from_candid_opt_n4(this._uploadFile, this._downloadFile, result);
+        }
+    }
     async getProjects(): Promise<Array<Project>> {
         if (this.processError) {
             try {
@@ -314,20 +410,6 @@ export class Backend implements backendInterface {
             }
         } else {
             const result = await this.actor.getProjects();
-            return result;
-        }
-    }
-    async getReview(arg0: bigint): Promise<Review> {
-        if (this.processError) {
-            try {
-                const result = await this.actor.getReview(arg0);
-                return result;
-            } catch (e) {
-                this.processError(e);
-                throw new Error("unreachable");
-            }
-        } else {
-            const result = await this.actor.getReview(arg0);
             return result;
         }
     }
@@ -387,17 +469,17 @@ export class Backend implements backendInterface {
             return result;
         }
     }
-    async recordVisit(arg0: string): Promise<void> {
+    async recordVisit(): Promise<void> {
         if (this.processError) {
             try {
-                const result = await this.actor.recordVisit(arg0);
+                const result = await this.actor.recordVisit();
                 return result;
             } catch (e) {
                 this.processError(e);
                 throw new Error("unreachable");
             }
         } else {
-            const result = await this.actor.recordVisit(arg0);
+            const result = await this.actor.recordVisit();
             return result;
         }
     }
@@ -415,45 +497,101 @@ export class Backend implements backendInterface {
             return result;
         }
     }
-    async submitReview(arg0: string, arg1: string, arg2: string, arg3: string, arg4: bigint): Promise<bigint> {
+    async setContactSettings(arg0: string, arg1: ContactSettings): Promise<boolean> {
         if (this.processError) {
             try {
-                const result = await this.actor.submitReview(arg0, arg1, arg2, arg3, arg4);
+                const result = await this.actor.setContactSettings(arg0, arg1);
                 return result;
             } catch (e) {
                 this.processError(e);
                 throw new Error("unreachable");
             }
         } else {
-            const result = await this.actor.submitReview(arg0, arg1, arg2, arg3, arg4);
+            const result = await this.actor.setContactSettings(arg0, arg1);
             return result;
         }
     }
-    async updateExperience(arg0: string, arg1: bigint, arg2: string, arg3: string, arg4: string, arg5: string, arg6: bigint): Promise<boolean> {
+    async setProfileSettings(arg0: string, arg1: ProfileSettings): Promise<boolean> {
         if (this.processError) {
             try {
-                const result = await this.actor.updateExperience(arg0, arg1, arg2, arg3, arg4, arg5, arg6);
+                const result = await this.actor.setProfileSettings(arg0, arg1);
                 return result;
             } catch (e) {
                 this.processError(e);
                 throw new Error("unreachable");
             }
         } else {
-            const result = await this.actor.updateExperience(arg0, arg1, arg2, arg3, arg4, arg5, arg6);
+            const result = await this.actor.setProfileSettings(arg0, arg1);
             return result;
         }
     }
-    async updateProject(arg0: string, arg1: bigint, arg2: string, arg3: string, arg4: string, arg5: bigint): Promise<boolean> {
+    async submitReview(arg0: Review): Promise<boolean> {
         if (this.processError) {
             try {
-                const result = await this.actor.updateProject(arg0, arg1, arg2, arg3, arg4, arg5);
+                const result = await this.actor.submitReview(arg0);
                 return result;
             } catch (e) {
                 this.processError(e);
                 throw new Error("unreachable");
             }
         } else {
-            const result = await this.actor.updateProject(arg0, arg1, arg2, arg3, arg4, arg5);
+            const result = await this.actor.submitReview(arg0);
+            return result;
+        }
+    }
+    async updateEducation(arg0: string, arg1: string, arg2: Education): Promise<boolean> {
+        if (this.processError) {
+            try {
+                const result = await this.actor.updateEducation(arg0, arg1, arg2);
+                return result;
+            } catch (e) {
+                this.processError(e);
+                throw new Error("unreachable");
+            }
+        } else {
+            const result = await this.actor.updateEducation(arg0, arg1, arg2);
+            return result;
+        }
+    }
+    async updateExperience(arg0: string, arg1: string, arg2: Experience): Promise<boolean> {
+        if (this.processError) {
+            try {
+                const result = await this.actor.updateExperience(arg0, arg1, arg2);
+                return result;
+            } catch (e) {
+                this.processError(e);
+                throw new Error("unreachable");
+            }
+        } else {
+            const result = await this.actor.updateExperience(arg0, arg1, arg2);
+            return result;
+        }
+    }
+    async updateProject(arg0: string, arg1: string, arg2: Project): Promise<boolean> {
+        if (this.processError) {
+            try {
+                const result = await this.actor.updateProject(arg0, arg1, arg2);
+                return result;
+            } catch (e) {
+                this.processError(e);
+                throw new Error("unreachable");
+            }
+        } else {
+            const result = await this.actor.updateProject(arg0, arg1, arg2);
+            return result;
+        }
+    }
+    async updateSkillCategory(arg0: string, arg1: string, arg2: SkillCategory): Promise<boolean> {
+        if (this.processError) {
+            try {
+                const result = await this.actor.updateSkillCategory(arg0, arg1, arg2);
+                return result;
+            } catch (e) {
+                this.processError(e);
+                throw new Error("unreachable");
+            }
+        } else {
+            const result = await this.actor.updateSkillCategory(arg0, arg1, arg2);
             return result;
         }
     }
@@ -471,6 +609,48 @@ export class Backend implements backendInterface {
             return result;
         }
     }
+}
+function from_candid_AllData_n1(_uploadFile: (file: ExternalBlob) => Promise<Uint8Array>, _downloadFile: (file: Uint8Array) => Promise<ExternalBlob>, value: _AllData): AllData {
+    return from_candid_record_n2(_uploadFile, _downloadFile, value);
+}
+function from_candid_opt_n3(_uploadFile: (file: ExternalBlob) => Promise<Uint8Array>, _downloadFile: (file: Uint8Array) => Promise<ExternalBlob>, value: [] | [_ContactSettings]): ContactSettings | null {
+    return value.length === 0 ? null : value[0];
+}
+function from_candid_opt_n4(_uploadFile: (file: ExternalBlob) => Promise<Uint8Array>, _downloadFile: (file: Uint8Array) => Promise<ExternalBlob>, value: [] | [_ProfileSettings]): ProfileSettings | null {
+    return value.length === 0 ? null : value[0];
+}
+function from_candid_record_n2(_uploadFile: (file: ExternalBlob) => Promise<Uint8Array>, _downloadFile: (file: Uint8Array) => Promise<ExternalBlob>, value: {
+    contact: [] | [_ContactSettings];
+    reviews: Array<_Review>;
+    projects: Array<_Project>;
+    educations: Array<_Education>;
+    dailyVisits: Array<[string, bigint]>;
+    totalVisits: bigint;
+    experiences: Array<_Experience>;
+    skills: Array<_SkillCategory>;
+    profile: [] | [_ProfileSettings];
+}): {
+    contact?: ContactSettings;
+    reviews: Array<Review>;
+    projects: Array<Project>;
+    educations: Array<Education>;
+    dailyVisits: Array<[string, bigint]>;
+    totalVisits: bigint;
+    experiences: Array<Experience>;
+    skills: Array<SkillCategory>;
+    profile?: ProfileSettings;
+} {
+    return {
+        contact: record_opt_to_undefined(from_candid_opt_n3(_uploadFile, _downloadFile, value.contact)),
+        reviews: value.reviews,
+        projects: value.projects,
+        educations: value.educations,
+        dailyVisits: value.dailyVisits,
+        totalVisits: value.totalVisits,
+        experiences: value.experiences,
+        skills: value.skills,
+        profile: record_opt_to_undefined(from_candid_opt_n4(_uploadFile, _downloadFile, value.profile))
+    };
 }
 export interface CreateActorOptions {
     agent?: Agent;

@@ -10,23 +10,58 @@ import type { ActorMethod } from '@icp-sdk/core/agent';
 import type { IDL } from '@icp-sdk/core/candid';
 import type { Principal } from '@icp-sdk/core/principal';
 
+export interface AllData {
+  'contact' : [] | [ContactSettings],
+  'reviews' : Array<Review>,
+  'projects' : Array<Project>,
+  'educations' : Array<Education>,
+  'dailyVisits' : Array<[string, bigint]>,
+  'totalVisits' : bigint,
+  'experiences' : Array<Experience>,
+  'skills' : Array<SkillCategory>,
+  'profile' : [] | [ProfileSettings],
+}
+export interface ContactSettings {
+  'behanceUrl' : string,
+  'instagramUrl' : string,
+  'email' : string,
+  'phone' : string,
+  'location' : string,
+  'linkedinUrl' : string,
+}
+export interface Education {
+  'id' : string,
+  'sortOrder' : bigint,
+  'year' : string,
+  'degree' : string,
+  'college' : string,
+}
 export interface Experience {
-  'id' : bigint,
+  'id' : string,
   'title' : string,
   'period' : string,
   'sortOrder' : bigint,
   'description' : string,
   'company' : string,
 }
+export interface ProfileSettings {
+  'tagline' : string,
+  'name' : string,
+  'greeting' : string,
+  'jobTitle' : string,
+  'profilePhotoUrl' : string,
+  'resumeFileName' : string,
+  'resumeUrl' : string,
+}
 export interface Project {
-  'id' : bigint,
+  'id' : string,
   'url' : string,
   'title' : string,
   'sortOrder' : bigint,
   'imageUrl' : string,
 }
 export interface Review {
-  'id' : bigint,
+  'id' : string,
   'name' : string,
   'role' : string,
   'reviewText' : string,
@@ -35,59 +70,41 @@ export interface Review {
   'rating' : bigint,
 }
 export interface SkillCategory {
-  'id' : bigint,
+  'id' : string,
   'sortOrder' : bigint,
   'category' : string,
   'items' : Array<string>,
 }
-export interface VisitRecord { 'date' : string, 'count' : bigint }
 export interface _SERVICE {
-  'addExperience' : ActorMethod<
-    [string, string, string, string, string, bigint],
-    bigint
-  >,
-  'addProject' : ActorMethod<[string, string, string, string, bigint], bigint>,
-  'addSkillCategory' : ActorMethod<
-    [string, string, Array<string>, bigint],
-    bigint
-  >,
-  'deleteExperience' : ActorMethod<[string, bigint], boolean>,
-  'deleteProject' : ActorMethod<[string, bigint], boolean>,
-  'deleteReview' : ActorMethod<[string, bigint], boolean>,
-  'deleteSkillCategory' : ActorMethod<[string, bigint], boolean>,
-  'getAllData' : ActorMethod<
-    [],
-    {
-      'reviews' : Array<Review>,
-      'projects' : Array<Project>,
-      'dailyVisits' : Array<VisitRecord>,
-      'totalVisits' : bigint,
-      'experiences' : Array<Experience>,
-      'skills' : Array<SkillCategory>,
-    }
-  >,
-  'getDailyVisits' : ActorMethod<[], Array<VisitRecord>>,
+  'addEducation' : ActorMethod<[string, Education], boolean>,
+  'addExperience' : ActorMethod<[string, Experience], boolean>,
+  'addProject' : ActorMethod<[string, Project], boolean>,
+  'addSkillCategory' : ActorMethod<[string, SkillCategory], boolean>,
+  'deleteEducation' : ActorMethod<[string, string], boolean>,
+  'deleteExperience' : ActorMethod<[string, string], boolean>,
+  'deleteProject' : ActorMethod<[string, string], boolean>,
+  'deleteReview' : ActorMethod<[string, string], boolean>,
+  'deleteSkillCategory' : ActorMethod<[string, string], boolean>,
+  'getAllData' : ActorMethod<[], AllData>,
+  'getContactSettings' : ActorMethod<[], [] | [ContactSettings]>,
+  'getDailyVisits' : ActorMethod<[], Array<[string, bigint]>>,
+  'getEducations' : ActorMethod<[], Array<Education>>,
   'getExperiences' : ActorMethod<[], Array<Experience>>,
+  'getProfileSettings' : ActorMethod<[], [] | [ProfileSettings]>,
   'getProjects' : ActorMethod<[], Array<Project>>,
-  'getReview' : ActorMethod<[bigint], Review>,
   'getReviewCount' : ActorMethod<[], bigint>,
   'getReviews' : ActorMethod<[], Array<Review>>,
   'getSkills' : ActorMethod<[], Array<SkillCategory>>,
   'getTotalVisits' : ActorMethod<[], bigint>,
-  'recordVisit' : ActorMethod<[string], undefined>,
+  'recordVisit' : ActorMethod<[], undefined>,
   'setAdminPin' : ActorMethod<[string, string], boolean>,
-  'submitReview' : ActorMethod<
-    [string, string, string, string, bigint],
-    bigint
-  >,
-  'updateExperience' : ActorMethod<
-    [string, bigint, string, string, string, string, bigint],
-    boolean
-  >,
-  'updateProject' : ActorMethod<
-    [string, bigint, string, string, string, bigint],
-    boolean
-  >,
+  'setContactSettings' : ActorMethod<[string, ContactSettings], boolean>,
+  'setProfileSettings' : ActorMethod<[string, ProfileSettings], boolean>,
+  'submitReview' : ActorMethod<[Review], boolean>,
+  'updateEducation' : ActorMethod<[string, string, Education], boolean>,
+  'updateExperience' : ActorMethod<[string, string, Experience], boolean>,
+  'updateProject' : ActorMethod<[string, string, Project], boolean>,
+  'updateSkillCategory' : ActorMethod<[string, string, SkillCategory], boolean>,
   'verifyAdmin' : ActorMethod<[string], boolean>,
 }
 export declare const idlService: IDL.ServiceClass;
